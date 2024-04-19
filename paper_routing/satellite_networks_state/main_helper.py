@@ -138,7 +138,7 @@ class MainHelper:
             self.ARG_OF_PERIGEE_DEGREE_GEO,
             self.MEAN_MOTION_REV_PER_DAY_GEO
         )
-        satgen_GEO.combine_tles(output_generated_data_dir + "/" + name, "tles.txt")
+        # satgen_GEO.combine_tles(output_generated_data_dir + "/" + name, "tles.txt")
 
         # ISLs
         print("Generating ISLs...")
@@ -158,9 +158,8 @@ class MainHelper:
             raise ValueError("Unknown ISL selection: " + isl_selection)
 
         # ILLs
-        # Todo
-        # print("Generating ILLs...")
-        # satgen_GEO.generate_ills_with_3_GEO()
+        # Because the period of GEO satellites is different from that of LEO satellites, 
+        # we will put the ILL calculation later(in generate_dynamic_state.py)
 
         # Description
         print("Generating description...")
@@ -170,11 +169,6 @@ class MainHelper:
             self.MAX_ISL_LENGTH_M,
             self.MAX_ILL_LENGTH_M
         )
-        # satgen.generate_description(
-        #     output_generated_data_dir + "/" + name + "/description.txt",
-        #     self.MAX_GSL_LENGTH_M,
-        #     self.MAX_ISL_LENGTH_M
-        # )
 
         # GSL interfaces
         ground_stations = satgen.read_ground_stations_extended(
@@ -201,7 +195,7 @@ class MainHelper:
 
         # Forwarding state
         print("Generating forwarding state...")
-        satgen.help_dynamic_state(
+        satgen_GEO.help_dynamic_state(
             output_generated_data_dir,
             num_threads,  # Number of threads
             name,
@@ -209,6 +203,7 @@ class MainHelper:
             duration_s,
             self.MAX_GSL_LENGTH_M,
             self.MAX_ISL_LENGTH_M,
+            self.MAX_ILL_LENGTH_M,
             dynamic_state_algorithm,
             True
         )
