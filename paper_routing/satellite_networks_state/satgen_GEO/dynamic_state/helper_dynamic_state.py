@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../../../../satgenpy")
 import satgen
-import generate_dynamic_state
+from .generate_dynamic_state import generate_dynamic_state
 import os
 import math
 from multiprocessing.dummy import Pool as ThreadPool
@@ -70,6 +70,12 @@ def help_dynamic_state(
                                + "ms_for_" + str(duration_s) + "s"
     if not os.path.isdir(output_dynamic_state_dir):
         os.makedirs(output_dynamic_state_dir)
+    output_ills_dir = output_dynamic_state_dir + "/ills"
+    if not os.path.isdir(output_ills_dir):
+        os.makedirs(output_ills_dir)
+    output_fstate_dir = output_dynamic_state_dir + "/fstate"
+    if not os.path.isdir(output_fstate_dir):
+        os.makedirs(output_fstate_dir)
 
     # In nanoseconds
     simulation_end_time_ns = duration_s * 1000 * 1000 * 1000

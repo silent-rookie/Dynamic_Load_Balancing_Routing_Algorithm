@@ -1,28 +1,5 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2020 ETH Zurich
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 import sys
 sys.path.append("../../satgenpy")
-sys.path.append("../stagen_GEO")
 import satgen
 import os
 import satgen_GEO
@@ -34,6 +11,7 @@ class MainHelper:
             self,
             BASE_NAME,
             NICE_NAME,
+            NICE_NAME_GEO,
             ECCENTRICITY,
             ARG_OF_PERIGEE_DEGREE,
             PHASE_DIFF,
@@ -57,6 +35,7 @@ class MainHelper:
     ):
         self.BASE_NAME = BASE_NAME
         self.NICE_NAME = NICE_NAME
+        self.NICE_NAME_GEO = NICE_NAME_GEO
         self.ECCENTRICITY = ECCENTRICITY
         self.ARG_OF_PERIGEE_DEGREE = ARG_OF_PERIGEE_DEGREE
         self.PHASE_DIFF = PHASE_DIFF
@@ -129,7 +108,7 @@ class MainHelper:
         )
         satgen.generate_tles_from_scratch_manual(   # GEO
             output_generated_data_dir + "/" + name + "/tles_GEO.txt",
-            self.NICE_NAME,
+            self.NICE_NAME_GEO,
             self.NUM_ORBS_GEO,
             self.NUM_SATS_PER_ORB_GEO,
             self.PHASE_DIFF_GEO,
@@ -159,7 +138,7 @@ class MainHelper:
 
         # ILLs
         # Because the period of GEO satellites is different from that of LEO satellites, 
-        # we will put the ILL calculation later(in generate_dynamic_state.py)
+        # we will put the ILL calculation later(in algorithm_free_one_only_over_isls_ills.py)
 
         # Description
         print("Generating description...")

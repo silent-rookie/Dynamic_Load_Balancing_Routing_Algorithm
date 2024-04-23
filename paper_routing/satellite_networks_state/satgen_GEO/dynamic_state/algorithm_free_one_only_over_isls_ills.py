@@ -1,5 +1,5 @@
-from ills_calculation import calculate_ills
-from fstate_calculation import calculate_fstate_shortest_path_without_gs_relaying
+from .ills_calculation import calculate_ills
+from .fstate_calculation import calculate_fstate_shortest_path_without_gs_relaying
 
 
 
@@ -10,6 +10,7 @@ def algorithm_free_one_only_over_isls_ills(
         satellites,
         GEOsatellites,
         ground_stations,
+        max_ill_length_m,
         sat_net_graph_only_satellites_with_isls,
         ground_station_satellites_in_range,
         num_isls_per_sat,
@@ -54,19 +55,19 @@ def algorithm_free_one_only_over_isls_ills(
     # BANDWIDTH STATE
     #
 
-    # There is only one GSL interface for each node (pre-condition), which as-such will get the entire bandwidth
-    output_filename = output_dynamic_state_dir + "/gsl_if_bandwidth_" + str(time_since_epoch_ns) + ".txt"
-    if enable_verbose_logs:
-        print("  > Writing interface bandwidth state to: " + output_filename)
-    with open(output_filename, "w+") as f_out:
-        if time_since_epoch_ns == 0:
-            for node_id in range(len(satellites)):
-                f_out.write("%d,%d,%f\n"
-                            % (node_id, num_isls_per_sat[node_id],
-                               list_gsl_interfaces_info[node_id]["aggregate_max_bandwidth"]))
-            for node_id in range(len(satellites), len(satellites) + len(ground_stations)):
-                f_out.write("%d,%d,%f\n"
-                            % (node_id, 0, list_gsl_interfaces_info[node_id]["aggregate_max_bandwidth"]))
+    # # There is only one GSL interface for each node (pre-condition), which as-such will get the entire bandwidth
+    # output_filename = output_dynamic_state_dir + "/gsl_if_bandwidth_" + str(time_since_epoch_ns) + ".txt"
+    # if enable_verbose_logs:
+    #     print("  > Writing interface bandwidth state to: " + output_filename)
+    # with open(output_filename, "w+") as f_out:
+    #     if time_since_epoch_ns == 0:
+    #         for node_id in range(len(satellites)):
+    #             f_out.write("%d,%d,%f\n"
+    #                         % (node_id, num_isls_per_sat[node_id],
+    #                            list_gsl_interfaces_info[node_id]["aggregate_max_bandwidth"]))
+    #         for node_id in range(len(satellites), len(satellites) + len(ground_stations)):
+    #             f_out.write("%d,%d,%f\n"
+    #                         % (node_id, 0, list_gsl_interfaces_info[node_id]["aggregate_max_bandwidth"]))
 
     #################################
     # ILLS STATE
@@ -83,6 +84,7 @@ def algorithm_free_one_only_over_isls_ills(
         time_since_epoch_ns,
         satellites,
         GEOsatellites,
+        max_ill_length_m,
         prev_ills,
         enable_verbose_logs
     )

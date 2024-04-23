@@ -26,7 +26,7 @@ def calculate_fstate_shortest_path_without_gs_relaying(
     fstate = {}
 
     # Now write state to file for complete graph
-    output_filename = output_dynamic_state_dir + "/fstate_" + str(time_since_epoch_ns) + ".txt"
+    output_filename = output_dynamic_state_dir + "/fstate/fstate_" + str(time_since_epoch_ns) + ".txt"
     if enable_verbose_logs:
         print("  > Writing forwarding state to: " + output_filename)
     with open(output_filename, "w+") as f_out:

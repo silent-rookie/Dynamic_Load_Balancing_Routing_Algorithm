@@ -10,7 +10,8 @@ EARTH_RADIUS = 6378135.0
 # GENERATION CONSTANTS
 
 BASE_NAME = "starlink_GEO"
-NICE_NAME = "Starlink-GEO"
+NICE_NAME = "Starlink"
+NICE_NAME_GEO = "GEO"
 
 ################################################################
 
@@ -49,14 +50,14 @@ ARG_OF_PERIGEE_DEGREE_GEO = 0.0
 PHASE_DIFF_GEO = False
 
 MEAN_MOTION_REV_PER_DAY_GEO = 1 # 0.997268
-ALTITUDE_GEO_M = 35768000  # Altitude ~35768 km
+ALTITUDE_GEO_M = 35786000  # Altitude ~35786 km
 
 MAX_ILL_LENGTH_M = math.sqrt(math.pow(EARTH_RADIUS + ALTITUDE_GEO_M, 2) - 
                             math.pow(EARTH_RADIUS + ALTITUDE_M, 2))
 
 NUM_ORBS_GEO = 1
 NUM_SATS_PER_ORB_GEO = 3
-INCLINATION_DEGREE_GEO = 0
+INCLINATION_DEGREE_GEO = 0.001  # GEO orbits are zero, but pyephem does not permit 0, so lowest possible value
 
 ################################################################
 
@@ -65,6 +66,7 @@ INCLINATION_DEGREE_GEO = 0
 main_helper = MainHelper(
     BASE_NAME,
     NICE_NAME,
+    NICE_NAME_GEO,
     ECCENTRICITY,
     ARG_OF_PERIGEE_DEGREE,
     PHASE_DIFF,

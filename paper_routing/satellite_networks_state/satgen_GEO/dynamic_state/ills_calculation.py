@@ -23,6 +23,10 @@ def calculate_ills(
 
     """
 
+    # ills state
+    ills = {}
+
+
     output_ill_filename = output_dynamic_state_dir + "/ills/ills_" + str(time_since_epoch_ns) + ".txt"
     with open(output_ill_filename, 'w+') as f_out:
         if enable_verbose_logs:
@@ -49,11 +53,13 @@ def calculate_ills(
             if target_geo != -1:
                 num_ills_per_geo[target_geo] += 1   # the link is "geo-sat"
                 total_num_ills += 1
+            else:
+                raise ValueError("No suitable ILL be found, something wrong")
 
             if not prev_ills or prev_ills[sat] != target_geo:
                 changed_ills += 1
                 f_out.write(str(sat) + " " + str(target_geo) + "\n")
-            prev_ills[sat] = target_geo
+            ills[sat] = target_geo
 
         if enable_verbose_logs:
             print("  > Total ILLs................ " + str(total_num_ills))
@@ -61,4 +67,4 @@ def calculate_ills(
             print("  > Min. ILLs/GEOsatellite.... " + str(np.min(num_ills_per_geo)))
             print("  > Max. ILLs/GEOsatellite.... " + str(np.max(num_ills_per_geo)))
     
-    return prev_ills
+    return ills

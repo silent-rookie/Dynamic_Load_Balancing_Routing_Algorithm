@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../../../../satgenpy")
 import satgen
-import algorithm_free_one_only_over_isls_ills
+from .algorithm_free_one_only_over_isls_ills import algorithm_free_one_only_over_isls_ills
 from astropy import units as u
 import math
 import networkx as nx
@@ -103,7 +103,7 @@ def generate_dynamic_state_at(
         sat_net_graph_all_with_only_gsls.add_node(i)
     if enable_verbose_logs:
         print("  > Satellites............. " + str(len(satellites)))
-        print("  > GEOSatellites.......... ")+ str(len(GEOsatellites))
+        print("  > GEOSatellites.......... "+ str(len(GEOsatellites)))
         print("  > Ground stations........ " + str(len(ground_stations)))
         print("  > Max. range GSL......... " + str(max_gsl_length_m) + "m")
         print("  > Max. range ISL......... " + str(max_isl_length_m) + "m")
@@ -216,7 +216,9 @@ def generate_dynamic_state_at(
             epoch,
             time_since_epoch_ns,
             satellites,
+            GEOsatellites,
             ground_stations,
+            max_ill_length_m,
             sat_net_graph_only_satellites_with_isls,
             ground_station_satellites_in_range,
             num_isls_per_sat,
