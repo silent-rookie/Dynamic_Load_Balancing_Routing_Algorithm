@@ -21,11 +21,14 @@
  *         Simon               2020
  */
 
+/**
+ * Author:  silent-rookie      2024
+*/
+
 
 #include "ns3/abort.h"
 #include "ns3/log.h"
 #include "ns3/simulator.h"
-#include "ns3/point-to-point-laser-net-device.h"
 #include "ns3/point-to-point-laser-channel.h"
 #include "ns3/point-to-point-laser-remote-channel.h"
 #include "ns3/queue.h"
@@ -161,7 +164,29 @@ PointToPointLaserHelper::Install (Ptr<Node> a, Ptr<Node> b)
   container.Add (devA);
   container.Add (devB);
 
+  // begin update receive datarate
+  UpdateReceiveDatarate(devA, devB);
+
   return container;
+}
+
+void 
+PointToPointLaserHelper::UpdateReceiveDatarate(Ptr<PointToPointLaserNetDevice> a, Ptr<PointToPointLaserNetDevice> b){
+  int64_t interval_ns = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("receive_datarate_update_interval_ns"));
+  int64_t simulate_endtime_ns = m_basicSimulation->GetSimulationEndTimeNs();
+
+  a->SetReceiveDatarateUpdateIntervalNS(interval_ns);
+  a->SetSimulateEndTimeNS(simulate_endtime_ns);
+  b->SetReceiveDatarateUpdateIntervalNS(interval_ns);
+  b->SetSimulateEndTimeNS(simulate_endtime_ns);
+
+  a->UpdateReceiveDateRate(0);
+  b->UpdateReceiveDateRate(0);
+}
+
+void 
+PointToPointLaserHelper::SetBasicSimulationPtr(Ptr<BasicSimulation> basicSimulation){
+  m_basicSimulation = basicSimulation;
 }
 
 } // namespace ns3

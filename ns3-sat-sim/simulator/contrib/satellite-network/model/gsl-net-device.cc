@@ -372,6 +372,9 @@ GSLNetDevice::Receive (Ptr<Packet> packet)
       //
       Ptr<Packet> originalPacket = packet->Copy ();
 
+      // add receive_bytes for receive_rate
+      receive_bytes += packet->GetSize();
+
       //
       // Strip off the point-to-point protocol header and forward this packet
       // up the protocol stack.  Since this is a simple point-to-point link,

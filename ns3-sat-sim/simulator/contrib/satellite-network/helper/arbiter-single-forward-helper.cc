@@ -178,4 +178,30 @@ void ArbiterSingleForwardHelper::UpdateForwardingState(int64_t t) {
 
 }
 
+DataRate 
+ArbiterSingleForwardHelper::GetReceiveDatarateForNode(Ptr<Node> node){
+    uint32_t num_interfaces = node->GetObject<Ipv4>()->GetNInterfaces();
+    // interface in device:
+    // 0: loop-back interface
+    // 1 ~ 4: isl interface
+    // 5: gsl interface
+    // 6: ill interface
+    NS_ABORT_MSG_IF(num_interfaces != 7, "num interfaces in devices must as 7");
+    
+    uint64_t bps = 0;
+    // i begin as 1 to skip the loop-back interface
+    for(uint32_t i = 1; i < num_interfaces; ++i){
+        if(i >= 1 && i <= 4){
+            bps += node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>()->GetReceiveDataRate().GetBitRate();
+        }
+        else if(i == 5){
+            bps += node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>()->GetReceiveDataRate().GetBitRate();
+        }
+        else{
+            // ToDo
+        }
+    }
+    return DataRate(bps);
+}
+
 } // namespace ns3

@@ -21,6 +21,10 @@
  * 
  */
 
+/**
+ * Author:  silent-rookie      2024
+*/
+
 
 #include "ns3/log.h"
 #include "ns3/queue.h"
@@ -366,6 +370,9 @@ PointToPointLaserNetDevice::Receive (Ptr<Packet> packet)
       // headers.
       //
       Ptr<Packet> originalPacket = packet->Copy ();
+
+      // add receive_bytes for receive_rate
+      receive_bytes += packet->GetSize();
 
       //
       // Strip off the point-to-point protocol header and forward this packet

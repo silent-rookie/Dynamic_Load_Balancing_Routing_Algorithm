@@ -21,6 +21,10 @@
  * 
  */
 
+/**
+ * Author:  silent-rookie      2024
+*/
+
 #ifndef POINT_TO_POINT_LASER_NET_DEVICE_H
 #define POINT_TO_POINT_LASER_NET_DEVICE_H
 
@@ -35,6 +39,7 @@
 #include "ns3/data-rate.h"
 #include "ns3/ptr.h"
 #include "ns3/mac48-address.h"
+#include "ns3/receive-datarate-device.h"
 
 namespace ns3 {
 
@@ -55,7 +60,7 @@ class ErrorModel;
  * include a queue, data rate, and interframe transmission gap (the 
  * propagation delay is set in the PointToPointLaserChannel).
  */
-class PointToPointLaserNetDevice : public NetDevice
+class PointToPointLaserNetDevice : public NetDevice, public ReceiveDataRateDevice
 {
 public:
   /**

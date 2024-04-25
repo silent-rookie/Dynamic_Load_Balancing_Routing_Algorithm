@@ -36,6 +36,7 @@
 #include "ns3/ptr.h"
 #include "ns3/mac48-address.h"
 #include "ns3/node-container.h"
+#include "ns3/receive-datarate-device.h"
 
 namespace ns3 {
 
@@ -55,7 +56,7 @@ class ErrorModel;
  * include a queue, data rate, and interframe transmission gap (the 
  * propagation delay is set in the GSLChannel).
  */
-class GSLNetDevice : public NetDevice
+class GSLNetDevice : public NetDevice, public ReceiveDataRateDevice
 {
 public:
   /**
