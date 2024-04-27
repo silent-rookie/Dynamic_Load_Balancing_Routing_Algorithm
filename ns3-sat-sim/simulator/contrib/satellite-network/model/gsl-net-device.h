@@ -19,6 +19,10 @@
  * Author: Andre Aguas  March 2020
  */
 
+/**
+ * Author:  silent-rookie      2024
+*/
+
 
 #ifndef GSL_NET_DEVICE_H
 #define GSL_NET_DEVICE_H

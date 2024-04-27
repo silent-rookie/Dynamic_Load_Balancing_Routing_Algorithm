@@ -43,6 +43,50 @@ namespace ns3 {
         m_satellite_network_dir = m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("satellite_network_dir");
         m_satellite_network_routes_dir =  m_basicSimulation->GetRunDir() + "/" + m_basicSimulation->GetConfigParamOrFail("satellite_network_routes_dir");
         m_satellite_network_force_static = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("satellite_network_force_static", "false"));
+
+        ReadDescription();
+    }
+
+    void TopologySatelliteNetwork::ReadDescription(){
+        // Filename
+        std::ostringstream res;
+        res << m_satellite_network_dir << "/description.txt";
+        std::string filename = res.str();
+
+        // Check that the file exists
+        if (!file_exists(filename)) {
+            throw std::runtime_error(format_string("File %s does not exist.", filename.c_str()));
+        }
+
+        // Open file
+        std::string line;
+        std::ifstream fstate_file(filename);
+        if(fstate_file){
+            // Go over each line
+            while (getline(fstate_file, line)) {
+                // Split on ,
+                std::vector<std::string> comma_split = split_string(line, "=", 2);
+
+                if(comma_split[0] == "max_isl_length_m"){
+                    max_isl_length_m = parse_positive_double(comma_split[1]);
+                }
+                else if(comma_split[0] == "max_gsl_length_m"){
+                    max_gsl_length_m = parse_positive_double(comma_split[1]);
+                }
+                else if(comma_split[0] == "max_ill_length_m"){
+                    max_ill_length_m = parse_positive_double(comma_split[1]);
+                }
+                else{
+                    NS_ABORT_MSG("invalid description: " + comma_split[0]);
+                }
+            }
+
+            // Close file
+            fstate_file.close();
+        }
+        else{
+            throw std::runtime_error(format_string("File %s could not be read.", filename.c_str()));
+        }
     }
 
     void
@@ -487,6 +531,23 @@ namespace ns3 {
 
     uint32_t TopologySatelliteNetwork::GetNumGroundStations() {
         return m_groundStationNodes.GetN();
+    }
+
+    uint32_t TopologySatelliteNetwork::GetNumGEOSatellites(){
+        // Todo
+        return 0;
+    }
+
+    int64_t TopologySatelliteNetwork::GetMaxISL_Length_M(){
+        return max_isl_length_m;
+    }
+
+    int64_t TopologySatelliteNetwork::GetMaxGSL_Length_M(){
+        return max_gsl_length_m;
+    }
+    
+    int64_t TopologySatelliteNetwork::GetMaxILL_Length_M(){
+        return max_ill_length_m;
     }
 
     const NodeContainer& TopologySatelliteNetwork::GetNodes() {

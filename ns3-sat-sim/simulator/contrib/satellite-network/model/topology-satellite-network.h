@@ -75,6 +75,10 @@ namespace ns3 {
         // Additional accessors
         uint32_t GetNumSatellites();
         uint32_t GetNumGroundStations();
+        uint32_t GetNumGEOSatellites();
+        int64_t GetMaxISL_Length_M();
+        int64_t GetMaxGSL_Length_M();
+        int64_t GetMaxILL_Length_M();
         const NodeContainer& GetSatelliteNodes();
         const NodeContainer& GetGroundStationNodes();
         const std::vector<Ptr<GroundStation>>& GetGroundStations();
@@ -91,6 +95,7 @@ namespace ns3 {
 
         // Build functions
         void ReadConfig();
+        void ReadDescription();
         void Build(const Ipv4RoutingHelper& ipv4RoutingHelper);
         void ReadGroundStations();
         void ReadSatellites();
@@ -131,6 +136,11 @@ namespace ns3 {
         int64_t m_gsl_max_queue_size_pkts;
         bool m_enable_isl_utilization_tracking;
         int64_t m_isl_utilization_tracking_interval_ns;
+
+        // Description
+        int64_t max_isl_length_m;
+        int64_t max_gsl_length_m;
+        int64_t max_ill_length_m;
 
     };
 

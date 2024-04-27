@@ -19,7 +19,7 @@ ReceiveDataRateDevice::ReceiveDataRateDevice(): receive_bytes(0) {
 
 void ReceiveDataRateDevice::UpdateReceiveDateRate(int64_t current_time){
     // calculte bps
-    uint64_t now_bps = receive_bytes * 8 / m_receive_datarate_update_interval_ns * 1000 * 1000;
+    uint64_t now_bps = receive_bytes * 8 / m_receive_datarate_update_interval_ns * 1000 * 1000 * 1000;
     receive_rate = DataRate(now_bps);
     receive_bytes = 0;
 
