@@ -19,6 +19,10 @@
  *         Simon               2020
  */
 
+/**
+ * Author: silent-rookie    2024
+*/
+
 #ifndef TOPOLOGY_SATELLITE_NETWORK_H
 #define TOPOLOGY_SATELLITE_NETWORK_H
 
@@ -99,9 +103,11 @@ namespace ns3 {
         void Build(const Ipv4RoutingHelper& ipv4RoutingHelper);
         void ReadGroundStations();
         void ReadSatellites();
+        void ReadGEOSatellites();
         void InstallInternetStacks(const Ipv4RoutingHelper& ipv4RoutingHelper);
         void ReadISLs();
         void CreateGSLs();
+        void CreateILLs();
 
         // Helper
         void EnsureValidNodeId(uint32_t node_id);
@@ -121,8 +127,10 @@ namespace ns3 {
         NodeContainer m_allNodes;                           //!< All nodes
         NodeContainer m_groundStationNodes;                 //!< Ground station nodes
         NodeContainer m_satelliteNodes;                     //!< Satellite nodes
+        NodeContainer m_GEOsatelliteNodes;                  //!< GEOSatellite nodes
         std::vector<Ptr<GroundStation> > m_groundStations;  //!< Ground stations
-        std::vector<Ptr<Satellite>> m_satellites;           //<! Satellites
+        std::vector<Ptr<Satellite>> m_satellites;           //!< Satellites
+        std::vector<Ptr<Satellite>> m_GEOsatellites;        //!< GEOSatellites
         std::set<int64_t> m_endpoints;                      //<! Endpoint ids = ground station ids
 
         // ISL devices
@@ -132,8 +140,10 @@ namespace ns3 {
         // Values
         double m_isl_data_rate_megabit_per_s;
         double m_gsl_data_rate_megabit_per_s;
+        double m_ill_data_rate_megabit_per_s;
         int64_t m_isl_max_queue_size_pkts;
         int64_t m_gsl_max_queue_size_pkts;
+        int64_t m_ill_max_queue_size_pkts;
         bool m_enable_isl_utilization_tracking;
         int64_t m_isl_utilization_tracking_interval_ns;
 

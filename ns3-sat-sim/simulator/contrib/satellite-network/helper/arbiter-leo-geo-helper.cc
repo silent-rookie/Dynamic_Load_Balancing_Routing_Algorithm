@@ -47,7 +47,6 @@ ArbiterLEOGEOHelper::ArbiterLEOGEOHelper(Ptr<BasicSimulation> basicSimulation,
 
 std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> 
 ArbiterLEOGEOHelper::InitialEmptyForwardingState(){
-    NodeContainer m_nodes = m_topology->GetNodes();
     size_t num_leo_gs = m_topology->GetNumSatellites() + m_topology->GetNumGroundStations();
     std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> initial_forwarding_state;
     for (size_t i = 0; i < num_leo_gs; i++) {
