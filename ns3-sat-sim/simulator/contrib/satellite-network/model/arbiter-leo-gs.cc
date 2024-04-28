@@ -12,11 +12,12 @@ namespace ns3{
 
 NS_OBJECT_ENSURE_REGISTERED (ArbiterLEOGS);
 
-std::list<Ptr<MobilityModel>> ArbiterLEOGS::trafic_jam_areas;      // list of trafic jam area position
+ArbiterLEOGS::TraficAreasList ArbiterLEOGS::trafic_jam_areas;      // list of trafic jam area position
 double ArbiterLEOGS::trafic_judge_rate_in_jam = 0;                  // Determine if a detour is necessary in jam area
 double ArbiterLEOGS::trafic_judge_rate_non_jam = 0;                 // Determine if a detour is necessary in not-jam area
 double ArbiterLEOGS::tarfic_judge_rate_jam_to_normal = 0;           // Determine if a trafic jam area is transform to not-jam area
 int64_t ArbiterLEOGS::trafic_jam_area_radius_m = 0;               // radius of a trafic jam area in meter
+int64_t ArbiterLEOGS::trafic_jam_update_interval_ns = 0;
 double ArbiterLEOGS::isl_data_rate_megabit_per_s = 0;
 double ArbiterLEOGS::gsl_data_rate_megabit_per_s = 0;
 int64_t ArbiterLEOGS::num_satellites = 0;
@@ -49,6 +50,7 @@ void ArbiterLEOGS::Initialize(Ptr<BasicSimulation> basicSimulation, int64_t num_
     trafic_judge_rate_non_jam = parse_positive_double(basicSimulation->GetConfigParamOrFail("trafic_judge_rate_non_jam"));
     tarfic_judge_rate_jam_to_normal = parse_positive_double(basicSimulation->GetConfigParamOrFail("trafic_judge_rate_jam_to_normal"));
     trafic_jam_area_radius_m = parse_positive_int64(basicSimulation->GetConfigParamOrFail("trafic_jam_area_radius_m"));
+    trafic_jam_update_interval_ns = parse_positive_int64(basicSimulation->GetConfigParamOrFail("trafic_jam_update_interval_ns"));
     isl_data_rate_megabit_per_s = parse_positive_double(basicSimulation->GetConfigParamOrFail("isl_data_rate_megabit_per_s"));
     gsl_data_rate_megabit_per_s = parse_positive_double(basicSimulation->GetConfigParamOrFail("gsl_data_rate_megabit_per_s"));
     num_satellites = num_sat;
@@ -134,11 +136,11 @@ bool ArbiterLEOGS::CheckIfNeedDetourForNode(Ptr<Node> node){
 
     // check if the node is in trafic jam area
     bool is_in_trafic_jam_area = false;
-    std::vector<std::list<Ptr<MobilityModel>>::iterator> in_trafic_jam_ptrs;
+    std::vector<TraficAreasList::iterator> in_trafic_jam_ptrs;
     Ptr<MobilityModel> aMobility = node->GetObject<MobilityModel>();
-    std::list<Ptr<MobilityModel>>::iterator ptr = trafic_jam_areas.begin();
+    TraficAreasList::iterator ptr = trafic_jam_areas.begin();
     while(ptr != trafic_jam_areas.end()){
-        Ptr<MobilityModel> bMobility = *ptr;
+        Ptr<MobilityModel> bMobility = ptr->first;
         double distance = aMobility->GetDistanceFrom (bMobility);
         if(distance < trafic_jam_area_radius_m){
             is_in_trafic_jam_area = true;
@@ -151,8 +153,13 @@ bool ArbiterLEOGS::CheckIfNeedDetourForNode(Ptr<Node> node){
     bool is_need_detour = false;
     bool is_jam_to_normal = false;
     bool is_normal_to_jam = false;
+    // Only when all interfaces are uncongested can we determine that the area is non-jam area
+    bool all_interface_is_jam_to_normal = false;
+
     // i begin at 1 to skip the loop-back interface
-    for(uint32_t i = 1; i < num_interfaces; ++i){
+    // i end at 5 because the last interface of satellite is ill interface
+    // (but is GSLNetDevice because we did not implement ILLNetDevice), so we skip it
+    for(uint32_t i = 1; i < num_interfaces && i < 6; ++i){
         uint64_t now_bps, target_bps;
         if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>() != 0){
             // GSL NetDevice
@@ -199,17 +206,24 @@ bool ArbiterLEOGS::CheckIfNeedDetourForNode(Ptr<Node> node){
                                 "now_bps: " + std::to_string(now_bps);
         NS_ABORT_MSG_UNLESS(check_condition, fatal_str);
 
-        if(is_need_detour || is_jam_to_normal || is_normal_to_jam) break;
+        all_interface_is_jam_to_normal &= is_jam_to_normal;
+        is_jam_to_normal = false;
+
+        if(is_need_detour || is_normal_to_jam) break;
     }
 
     // update the trafic jam areas list
-    if(is_jam_to_normal){
-        for(std::list<Ptr<MobilityModel>>::iterator ptr : in_trafic_jam_ptrs){
-            trafic_jam_areas.erase(ptr);
+    if(is_in_trafic_jam_area && all_interface_is_jam_to_normal){
+        for(TraficAreasList::iterator ptr : in_trafic_jam_ptrs){
+            // must after trafic_jam_update_interval_ns
+            if(ptr->second){
+                trafic_jam_areas.erase(ptr);
+            }
         }
     }
     else if(is_normal_to_jam){
-        trafic_jam_areas.push_back(node->GetObject<MobilityModel>());
+        trafic_jam_areas.push_back(std::make_pair(node->GetObject<MobilityModel>(), false));
+        Simulator::Schedule(NanoSeconds(trafic_jam_update_interval_ns), &ArbiterLEOGS::ScheduleTraficJamArea, this, trafic_jam_areas.back());
 
         // display the progres of trafic jam list(in case the list is too long)
         size_t areas_size = trafic_jam_areas.size();
@@ -226,9 +240,9 @@ bool ArbiterLEOGS::CheckIfNeedDetourForNode(Ptr<Node> node){
 bool ArbiterLEOGS::CheckIfInTraficJamArea(Ptr<Node> node){
     // check if the node is in trafic jam area
     Ptr<MobilityModel> aMobility = node->GetObject<MobilityModel>();
-    std::list<Ptr<MobilityModel>>::iterator ptr = trafic_jam_areas.begin();
+    TraficAreasList::iterator ptr = trafic_jam_areas.begin();
     while(ptr != trafic_jam_areas.end()){
-        Ptr<MobilityModel> bMobility = *ptr;
+        Ptr<MobilityModel> bMobility = ptr->first;
         double distance = aMobility->GetDistanceFrom (bMobility);
         if(distance < trafic_jam_area_radius_m){
             return true;
@@ -271,6 +285,10 @@ ArbiterLEOGS::FindNextHopForGEO(int32_t target_node_id){
 
 std::string ArbiterLEOGS::StringReprOfForwardingState(){
     return "ArbiterLEOGS forwarding state";
+}
+
+void ArbiterLEOGS::ScheduleTraficJamArea(TraficAreasList::iterator ptr){
+    ptr->second = true;
 }
 
 }

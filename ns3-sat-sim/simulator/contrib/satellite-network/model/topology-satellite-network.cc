@@ -151,6 +151,7 @@ namespace ns3 {
 
         // Create ILLs
         std::cout << "  > Creating ILLs" << std::endl;
+        CreateILLs();
 
         // ARP caches
         std::cout << "  > Populating ARP caches" << std::endl;

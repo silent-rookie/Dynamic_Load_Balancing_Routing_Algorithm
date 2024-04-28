@@ -55,15 +55,25 @@ public:
     std::string StringReprOfForwardingState();
 
 private:
+    // list of trafic jam area position
+    // first: the trafic jam area position
+    // second: true mean that the area be able to change to non-jam area
+    typedef std::list<std::pair<Ptr<MobilityModel>, bool>> TraficAreasList;
+
+    // Schedule that after trafic_jam_update_interval_ns, 
+    // a jam area can be transformed to non-jam area
+    void ScheduleTraficJamArea(TraficAreasList::iterator ptr);
+
     int32_t m_next_GEO_node_id;
     ArbiterLEOGEOHelper* m_arbiter_leogeo_helper;
     std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> m_next_hop_lists;
 
-    static std::list<Ptr<MobilityModel>> trafic_jam_areas;      // list of trafic jam area position
-    static double trafic_judge_rate_in_jam;                      // Determine if a detour is necessary in jam area
-    static double trafic_judge_rate_non_jam;                     // Determine if a detour is necessary in not-jam area
-    static double tarfic_judge_rate_jam_to_normal;               // Determine if a trafic jam area is transform to not-jam area
-    static int64_t trafic_jam_area_radius_m;                   // radius of a trafic jam area in meter
+    static TraficAreasList trafic_jam_areas;                // list of trafic jam area position
+    static double trafic_judge_rate_in_jam;                 // Determine if a detour is necessary in jam area
+    static double trafic_judge_rate_non_jam;                // Determine if a detour is necessary in not-jam area
+    static double tarfic_judge_rate_jam_to_normal;          // Determine if a trafic jam area is transform to not-jam area
+    static int64_t trafic_jam_area_radius_m;                // radius of a trafic jam area in meter
+    static int64_t trafic_jam_update_interval_ns;           // after that interval time, a jam area be able to change to non-jam area
     static double isl_data_rate_megabit_per_s;
     static double gsl_data_rate_megabit_per_s;
     static int64_t num_satellites;
