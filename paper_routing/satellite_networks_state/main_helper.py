@@ -172,6 +172,19 @@ class MainHelper:
             1   # Aggregate max. bandwidth ground station (same unspecified unit)
         )
 
+        # ILL interfaces
+        print("Generating ILL interfaces info..")
+        satgen_GEO.generate_simple_ill_interfaces_info(
+            output_generated_data_dir + "/" + name + "/ill_interfaces_info.txt",
+            self.NUM_ORBS * self.NUM_SATS_PER_ORB,
+            len(ground_stations),
+            self.NUM_ORBS_GEO * self.NUM_SATS_PER_ORB_GEO,
+            1,  # ILL interfaces per satellite
+            1,  # ILL Interfaces per GEOsatellite
+            1,  # Aggregate max. bandwidth satellite (unit unspecified)
+            1   # Aggregate max. bandwidth GEOsatellite (same unspecified unit)
+        )
+
         # Forwarding state
         print("Generating forwarding state...")
         satgen_GEO.help_dynamic_state(
