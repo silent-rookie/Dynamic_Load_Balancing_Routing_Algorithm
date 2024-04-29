@@ -18,6 +18,8 @@ ArbiterLEOGEOHelper::ArbiterLEOGEOHelper(Ptr<BasicSimulation> basicSimulation,
     std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> initial_forwarding_state = InitialEmptyForwardingState();
     basicSimulation->RegisterTimestamp("Create initial LEOGEO forwarding state");
 
+    // Initialize ArbiterLEOGS
+    ArbiterLEOGS::Initialize(basicSimulation, topology->GetNumSatellites(), topology->GetNumGroundStations());
     // Set the routing arbiters
     std::cout << "  > Setting the routing arbiter on LEO GS node" << std::endl;
     for (size_t i = 0; i < topology->GetNumSatellites() + topology->GetNumGroundStations(); i++) {
@@ -25,9 +27,6 @@ ArbiterLEOGEOHelper::ArbiterLEOGEOHelper(Ptr<BasicSimulation> basicSimulation,
         m_arbiters_leo_gs.push_back(arbiter);
         m_nodes.Get(i)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->SetArbiter(arbiter);
     }
-    // Initialize ArbiterLEOGS
-    ArbiterLEOGS::Initialize(basicSimulation, topology->GetNumSatellites(), topology->GetNumGroundStations());
-
     std::cout << "  > Setting the routing arbiter on GEO node" << std::endl;
     for (size_t i = 0; i < topology->GetNumGEOSatellites(); ++i){
         size_t geo_id = i + topology->GetNumSatellites() + topology->GetNumGroundStations();

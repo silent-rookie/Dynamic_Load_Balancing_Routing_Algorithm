@@ -33,6 +33,9 @@ public:
             bool is_socket_request_for_source_ip
     );
 
+    // find the next leo to for GEOsatellite
+    std::tuple<int32_t, int32_t, int32_t> FindNextHopForGEO(int32_t from, int32_t target_node_id);
+
     /**
      * \brief push the next hop information
      * \param pkt the forward packet

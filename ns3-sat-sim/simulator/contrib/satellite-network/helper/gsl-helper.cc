@@ -23,10 +23,6 @@
  * 
  */
 
-/**
- * Author:  silent-rookie      2024
-*/
-
 
 #include "ns3/abort.h"
 #include "ns3/log.h"
@@ -43,7 +39,7 @@
 #include "ns3/mpi-receiver.h"
 
 #include "ns3/trace-helper.h"
-#include "gsl-helper.h"
+#include "ns3/gsl-helper.h"
 
 namespace ns3 {
 
@@ -156,25 +152,7 @@ GSLHelper::Install (Ptr<Node> node, Ptr<GSLChannel> channel) {
     // Attach to channel
     dev->Attach (channel);
 
-    // begin update receive datarate
-    UpdateReceiveDatarate(dev);
-
     return dev;
-}
-
-void 
-GSLHelper::SetBasicSimulationPtr(Ptr<BasicSimulation> basicSimulation){
-    m_basicSimulation = basicSimulation;
-}
-
-void GSLHelper::UpdateReceiveDatarate(Ptr<GSLNetDevice> a){
-    int64_t interval_ns = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("receive_datarate_update_interval_ns"));
-    int64_t simulate_endtime_ns = m_basicSimulation->GetSimulationEndTimeNs();
-
-    a->SetReceiveDatarateUpdateIntervalNS(interval_ns);
-    a->SetSimulateEndTimeNS(simulate_endtime_ns);
-
-    a->UpdateReceiveDateRate(0);
 }
 
 

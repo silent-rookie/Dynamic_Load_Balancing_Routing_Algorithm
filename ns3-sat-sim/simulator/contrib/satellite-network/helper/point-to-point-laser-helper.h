@@ -22,10 +22,6 @@
  * 
  */
 
-/**
- * Author:  silent-rookie      2024
-*/
-
 
 #ifndef POINT_TO_POINT_LASER_HELPER_H
 #define POINT_TO_POINT_LASER_HELPER_H
@@ -34,8 +30,6 @@
 #include "ns3/net-device-container.h"
 #include "ns3/node-container.h"
 #include "ns3/trace-helper.h"
-#include "ns3/basic-simulation.h"
-#include "ns3/point-to-point-laser-net-device.h"
 
 namespace ns3 {
 
@@ -58,8 +52,6 @@ public:
   void SetDeviceAttribute (std::string name, const AttributeValue &value);
   void SetChannelAttribute (std::string name, const AttributeValue &value);
 
-  void SetBasicSimulationPtr(Ptr<BasicSimulation> basicSimulation);
-
   // Installers
   NetDeviceContainer Install (NodeContainer c);
   NetDeviceContainer Install (Ptr<Node> a, Ptr<Node> b);
@@ -69,9 +61,6 @@ private:
   ObjectFactory m_channelFactory;       //!< Channel Factory
   ObjectFactory m_remoteChannelFactory; //!< Remote Channel Factory
   ObjectFactory m_deviceFactory;        //!< Device Factory
-
-  Ptr<BasicSimulation> m_basicSimulation;
-  void UpdateReceiveDatarate(Ptr<PointToPointLaserNetDevice> a, Ptr<PointToPointLaserNetDevice> b);
 };
 
 } // namespace ns3

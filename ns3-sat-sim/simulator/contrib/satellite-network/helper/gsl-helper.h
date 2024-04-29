@@ -29,8 +29,6 @@
 #include "ns3/net-device-container.h"
 #include "ns3/node-container.h"
 #include "ns3/gsl-net-device.h"
-#include "ns3/basic-simulation.h"
-#include "ns3/gsl-net-device.h"
 
 
 namespace ns3 {
@@ -53,8 +51,6 @@ public:
   void SetDeviceAttribute (std::string name, const AttributeValue &value);
   void SetChannelAttribute (std::string name, const AttributeValue &value);
 
-  void SetBasicSimulationPtr(Ptr<BasicSimulation> basicSimulation);
-
   // Installers
   NetDeviceContainer Install (NodeContainer satellites, NodeContainer gss, std::vector<std::tuple<int32_t, double>>& node_gsl_if_info);
   Ptr<GSLNetDevice> Install (Ptr<Node> node, Ptr<GSLChannel> channel);
@@ -63,9 +59,6 @@ private:
   ObjectFactory m_queueFactory;         //!< Queue Factory
   ObjectFactory m_channelFactory;       //!< Channel Factory
   ObjectFactory m_deviceFactory;        //!< Device Factory
-
-  Ptr<BasicSimulation> m_basicSimulation;
-  void UpdateReceiveDatarate(Ptr<GSLNetDevice> a);
 };
 
 } // namespace ns3

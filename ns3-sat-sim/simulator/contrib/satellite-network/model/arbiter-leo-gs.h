@@ -45,12 +45,11 @@ public:
     void SetLEOGSForwardState(int32_t target_node_id, std::vector<std::tuple<int32_t, int32_t, int32_t>> next_hop_list);
     void SetLEONextGEOID(int32_t next_GEO_node_id);
 
-    // find the next leo to for GEOsatellite
-    // called by GEOsatellite
-    std::tuple<int32_t, int32_t, int32_t> FindNextHopForGEO(int32_t target_node_id);
+    std::vector<std::tuple<int32_t, int32_t, int32_t>> GetLEOGSForwardState(int32_t target_node_id);
+    int32_t GetLEONextGEOID();
 
-    bool CheckIfNeedDetourForNode(Ptr<Node> node);
-    bool CheckIfInTraficJamArea(Ptr<Node> node);
+    bool CheckIfInTraficJamArea();
+    bool CheckIfNeedDetour();
 
     std::string StringReprOfForwardingState();
 
@@ -60,9 +59,16 @@ private:
     // second: true mean that the area be able to change to non-jam area
     typedef std::list<std::pair<Ptr<MobilityModel>, bool>> TraficAreasList;
 
+    // update detour information each interval: receive_datarate_update_interval_ns
+    void UpdateDetour();
+    void UpdateReceiveDatarate();
+
     // Schedule that after trafic_jam_update_interval_ns, 
     // a jam area can be transformed to non-jam area
-    void ScheduleTraficJamArea(TraficAreasList::iterator ptr);
+    void ScheduleTraficJamArea(std::pair<Ptr<MobilityModel>, bool>& ptr);
+
+    // if the node which attach to this arbiter is detour
+    bool is_detour;
 
     int32_t m_next_GEO_node_id;
     ArbiterLEOGEOHelper* m_arbiter_leogeo_helper;
@@ -74,6 +80,7 @@ private:
     static double tarfic_judge_rate_jam_to_normal;          // Determine if a trafic jam area is transform to not-jam area
     static int64_t trafic_jam_area_radius_m;                // radius of a trafic jam area in meter
     static int64_t trafic_jam_update_interval_ns;           // after that interval time, a jam area be able to change to non-jam area
+    static int64_t receive_datarate_update_interval_ns;     // the interval that a netdevice receive datarate update
     static double isl_data_rate_megabit_per_s;
     static double gsl_data_rate_megabit_per_s;
     static int64_t num_satellites;

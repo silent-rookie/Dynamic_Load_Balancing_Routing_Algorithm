@@ -45,7 +45,45 @@ ArbiterGEO::TopologySatelliteNetworkDecide(
                                                     "the packet have never been push to map");
 
     int32_t from = m_geo_pkt_next_hop_map[hash_value];
-    return m_arbiter_leo_geo_helper->m_arbiters_leo_gs[from]->FindNextHopForGEO(target_node_id);
+    return FindNextHopForGEO(from, target_node_id);
+}
+
+std::tuple<int32_t, int32_t, int32_t> 
+ArbiterGEO::FindNextHopForGEO(int32_t from, int32_t target_node_id){
+    int32_t ptr = std::get<0>(m_arbiter_leo_geo_helper->m_arbiters_leo_gs[from]->GetLEOGSForwardState(target_node_id)[0]);
+    NS_ABORT_MSG_IF(target_node_id == ptr, "LEO forward packet to GEO instead of ground station");
+
+    int32_t last_ptr = ptr;
+    // recursive search the node which not in trafic jam area
+    while(ptr != target_node_id && m_arbiter_leo_geo_helper->m_arbiters_leo_gs[ptr]->CheckIfNeedDetour()){
+        // make sure the next node is in ill distance
+        if(m_arbiter_leo_geo_helper->m_arbiters_leo_gs[ptr]->GetLEONextGEOID() != m_node_id){
+            // next hop of GEOsatellite is out of ill.
+            // this situation is special, for now we just abort.
+            NS_ABORT_MSG("next hop of GEOsatellite is out of ill");
+        }
+
+        last_ptr = ptr;
+        ptr = std::get<0>(m_arbiter_leo_geo_helper->m_arbiters_leo_gs[ptr]->GetLEOGSForwardState(target_node_id)[0]);
+    }
+    
+    // interface for device in satellite:
+    // 0: loop-back interface
+    // 1 ~ 4: isl interface
+    // 5: gsl interface
+    // 6: ill interface
+    // interface for device in GEOsatellite:
+    // 0: loop-back interface
+    // 1: ill interface
+
+    if(ptr == target_node_id){
+        // all leo on the road are detour
+        // we can only detour to the last leo
+        return std::make_tuple(last_ptr, 1, 6);
+    }
+    else{
+        return std::make_tuple(ptr, 1, 6);
+    }
 }
 
 void
