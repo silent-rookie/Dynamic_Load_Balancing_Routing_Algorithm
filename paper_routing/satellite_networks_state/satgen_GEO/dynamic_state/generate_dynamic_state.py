@@ -209,8 +209,7 @@ def generate_dynamic_state_at(
     # (b) Output the fstate_<t>.txt files
     # (c) Output the ills_<t>.txt files
     #
-    if dynamic_state_algorithm == "algorithm_free_one_only_over_isls":
-
+    if dynamic_state_algorithm == "algorithm_free_one_only_over_isls_ills":
         return algorithm_free_one_only_over_isls_ills(
             output_dynamic_state_dir,
             epoch,

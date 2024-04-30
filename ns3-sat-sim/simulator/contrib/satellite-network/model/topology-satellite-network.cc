@@ -580,9 +580,8 @@ namespace ns3 {
                 int64_t node_id = parse_positive_int64(comma_split[0]);
                 int64_t num_ifs = parse_positive_int64(comma_split[1]);
                 double agg_bandwidth = parse_positive_double(comma_split[2]);
-                if ((size_t) node_id != line_counter || (size_t) node_id != line_counter + GetNumGroundStations()) {
-                    throw std::runtime_error("Node id must be incremented each line in ILL interfaces info");
-                }
+                NS_ABORT_MSG_IF((size_t) node_id != line_counter && (size_t) node_id != line_counter + GetNumGroundStations(), 
+                                                                    "Node id must be incremented each line in ILL interfaces info");
                 node_ill_if_info.push_back(std::make_tuple((int32_t) num_ifs, agg_bandwidth));
                 total_num_ill_ifs += num_ifs;
                 line_counter++;

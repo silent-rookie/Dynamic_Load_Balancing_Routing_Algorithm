@@ -60,6 +60,7 @@ private:
     typedef std::list<std::pair<Ptr<MobilityModel>, bool>> TraficAreasList;
 
     // update detour information each interval: receive_datarate_update_interval_ns
+    // Note: we also update receive datarate rate for each netdevice
     void UpdateDetour();
     void UpdateReceiveDatarate();
 

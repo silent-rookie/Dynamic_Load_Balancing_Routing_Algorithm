@@ -23,5 +23,6 @@ def generate_simple_ill_interfaces_info(filename_ill_interfaces_info,
     with open(filename_ill_interfaces_info, 'w+') as f:
         for node_id in range(number_of_satellites):
             f.write("%d,%d,%f\n" % (node_id, num_ill_interfaces_per_satellite, agg_max_bandwidth_satellite))
-        for node_id in range(number_of_satellites + number_of_ground_stations):
-            f.write("%d,%d,%f\n" % (node_id, num_ill_interfaces_per_GEOsatellite, agg_max_bandwidth_GEOsatellite))
+        for node_id in range(number_of_GEOsatellites):
+            f.write("%d,%d,%f\n" % (node_id + number_of_satellites + number_of_ground_stations, 
+                                    num_ill_interfaces_per_GEOsatellite, agg_max_bandwidth_GEOsatellite))

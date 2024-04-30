@@ -62,6 +62,18 @@ void ArbiterLEOGS::Initialize(Ptr<BasicSimulation> basicSimulation, int64_t num_
     gsl_data_rate_megabit_per_s = parse_positive_double(basicSimulation->GetConfigParamOrFail("gsl_data_rate_megabit_per_s"));
     num_satellites = num_sat;
     num_groundstations = num_gs;
+
+    // initialize receive_datarate_update_interval_ns in ReceiveDatarateDevice
+    ReceiveDataRateDevice::SetReceiveDatarateUpdateIntervalNS(receive_datarate_update_interval_ns);
+
+    std::cout << "\n  > Algorithm argument" << std::endl;
+    std::cout << "    trafic_judge_rate_in_jam:             " + std::to_string(trafic_judge_rate_in_jam) << std::endl;
+    std::cout << "    trafic_judge_rate_non_jam:            " + std::to_string(trafic_judge_rate_non_jam) << std::endl;
+    std::cout << "    tarfic_judge_rate_jam_to_normal:      " + std::to_string(tarfic_judge_rate_jam_to_normal) << std::endl;
+    std::cout << "    trafic_jam_area_radius_m:             " + std::to_string(trafic_jam_area_radius_m) << std::endl;
+    std::cout << "    trafic_jam_update_interval_ns:        " + std::to_string(trafic_jam_update_interval_ns) << std::endl;
+    std::cout << "    receive_datarate_update_interval_ns:  " + std::to_string(receive_datarate_update_interval_ns) << std::endl;
+    std::cout << std::endl;
 }
 
 std::tuple<int32_t, int32_t, int32_t> ArbiterLEOGS::TopologySatelliteNetworkDecide(
@@ -175,7 +187,7 @@ void ArbiterLEOGS::UpdateDetour(){
     // 1: gsl interface
     Ptr<Node> node = m_nodes.Get(m_node_id);
     uint32_t num_interfaces = node->GetObject<Ipv4>()->GetNInterfaces();
-    NS_ABORT_MSG_IF(num_interfaces != 7 || num_interfaces != 2, "num interfaces in devices must as 7 or 2");
+    NS_ABORT_MSG_IF(num_interfaces != 7 && num_interfaces != 2, "num interfaces in devices must as 7 or 2");
 
     // check if the node is in trafic jam area
     bool is_in_trafic_jam_area = false;
@@ -207,6 +219,7 @@ void ArbiterLEOGS::UpdateDetour(){
         if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>() != 0){
             // GSL NetDevice
             Ptr<GSLNetDevice> gsl = node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>();
+            // update receive datarate
             gsl->UpdateReceiveDataRate();
             now_bps = gsl->GetReceiveDataRate().GetBitRate();
             target_bps = DataRate(std::to_string(gsl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
@@ -214,6 +227,7 @@ void ArbiterLEOGS::UpdateDetour(){
         else if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>() != 0){
             // ISL NetDevice
             Ptr<PointToPointLaserNetDevice> isl = node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>();
+            // update receive datarate
             isl->UpdateReceiveDataRate();
             now_bps = isl->GetReceiveDataRate().GetBitRate();
             target_bps = DataRate(std::to_string(isl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
@@ -296,7 +310,7 @@ void ArbiterLEOGS::UpdateReceiveDatarate(){
     // 1: gsl interface
     Ptr<Node> node = m_nodes.Get(m_node_id);
     uint32_t num_interfaces = node->GetObject<Ipv4>()->GetNInterfaces();
-    NS_ABORT_MSG_IF(num_interfaces != 7 || num_interfaces != 2, "num interfaces in devices must as 7 or 2");
+    NS_ABORT_MSG_IF(num_interfaces != 7 && num_interfaces != 2, "num interfaces in devices must as 7 or 2");
 
     // i begin at 1 to skip the loop-back interface
     for(uint32_t i = 1; i < num_interfaces; ++i){

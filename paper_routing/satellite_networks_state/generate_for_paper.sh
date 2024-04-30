@@ -23,13 +23,13 @@ echo "Running workload ${id} with ${num_threads} threads"
 
 # Starlink-550 with ISLs
 if [ "${id}" = "0" ]; then
-  python main_starlink_GEO.py 200 50 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls ${num_threads}
+  python main_starlink_GEO.py 200 50 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls_ills ${num_threads}
 fi
 if [ "${id}" = "1" ]; then
-  python main_starlink_GEO.py 200 100 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls ${num_threads}
+  python main_starlink_GEO.py 200 100 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls_ills ${num_threads}
 fi
 if [ "${id}" = "2" ]; then
-  python main_starlink_GEO.py 200 1000 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls ${num_threads}
+  python main_starlink_GEO.py 200 1000 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls_ills ${num_threads}
 fi
 
 # # Kuiper-630 with ISLs

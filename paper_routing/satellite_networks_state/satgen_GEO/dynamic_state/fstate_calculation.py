@@ -55,7 +55,7 @@ def calculate_fstate_shortest_path_without_gs_relaying(
 
                 # By default, if there is no satellite in range for the
                 # destination ground station, it will be dropped (indicated by -1)
-                # both 3 neighbors are add to candidate lists for detour
+                # pick 3 neighbors are add to candidate lists for detour
                 next_hop_lists = [[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]]
                 distance_to_ground_station_m = float("inf")
                 if len(possibilities) > 0:
@@ -65,7 +65,7 @@ def calculate_fstate_shortest_path_without_gs_relaying(
                     # If the current node is not that satellite, determine how to get to the satellite
                     if curr != dst_sat:
 
-                        # both 3 neighbors are add to candidate lists for detour
+                        # pick 3 neighbors are add to candidate lists for detour
                         next_hop_candidates = []
                         for neighbor_id in sat_net_graph_only_satellites_with_isls.neighbors(curr):
                             distance_m = (
@@ -79,6 +79,8 @@ def calculate_fstate_shortest_path_without_gs_relaying(
                                                         sat_neighbor_to_if[(neighbor_id, curr)]))
                         next_hop_candidates.sort()
                         for i in range(len(next_hop_candidates)):
+                            if i >= 3:
+                                break
                             next_hop_lists[i] = [next_hop_candidates[i][1], next_hop_candidates[i][2], next_hop_candidates[i][3]]
 
                     else:
@@ -89,7 +91,7 @@ def calculate_fstate_shortest_path_without_gs_relaying(
                 # when we calculate ground station to ground station forwarding
                 dist_satellite_to_ground_station[(curr, dst_gs_node_id)] = distance_to_ground_station_m
 
-                # because the sat_neighbor_to_if if never change
+                # because the sat_neighbor_to_if is never change
                 # we just use sat node id for prev_fstate
                 prev_next_node = [next_hop_lists[0][0], next_hop_lists[1][0], next_hop_lists[2][0]]
 

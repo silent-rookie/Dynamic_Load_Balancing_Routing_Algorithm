@@ -16,19 +16,21 @@ public:
 
     /**
      * \brief update reveive datarate
+     * we update each device receive datarate in each m_receive_datarate_update_interval_ns
+     * it is update in ArbiterLEOGS::UpdateDetour
     */
     void UpdateReceiveDataRate();
-    void UpdateReceiveDateRate(int64_t current_time);
+    // void UpdateReceiveDateRate(int64_t current_time);
 
-    void SetReceiveDatarateUpdateIntervalNS(int64_t receive_datarate_update_interval_ns);
-    void SetSimulateEndTimeNS(int64_t simulate_end_time_ns);
+    static void SetReceiveDatarateUpdateIntervalNS(int64_t receive_datarate_update_interval_ns);
+    // void SetSimulateEndTimeNS(int64_t simulate_end_time_ns);
 
     DataRate GetReceiveDataRate();
 protected:
     uint32_t receive_bytes;
     DataRate receive_rate;
-    int64_t m_receive_datarate_update_interval_ns;
-    int64_t m_simulate_end_time_ns;
+    static int64_t m_receive_datarate_update_interval_ns;
+    // int64_t m_simulate_end_time_ns;
 };
 
 }

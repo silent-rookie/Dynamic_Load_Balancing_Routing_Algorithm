@@ -25,20 +25,20 @@ for config in [
     #   isl_max_queue_size_pkts, gsl_max_queue_size_pkts, ill_max_queue_size_pkts,
     #   durations, udp_burst_Kbps)
 
-    (2.5, 5, 25, 20000, 20000, 200000, 200, 100)
-    #(2.5, 5, 25, 20000, 20000, 200000, 5736, 100)
+    (2.5, 5, 25, 20000, 20000, 200000, 200, 0.1)
+    #(2.5, 5, 25, 20000, 20000, 200000, 5736, 0.1)
 ]:
 
     # Retrieve values from the config
     duration_s = config[6]
-    udp_burst_Kbps = config[7]
+    udp_burst_Mbps = config[7]
 
     # unsupport tcp now
     for protocol_chosen in ["udp"]:
 
         # Prepare run directory
-        run_dir = "runs/run_loaded_tm_pairing_%d_Kbps_for_%ds_with_%s" % (
-            udp_burst_Kbps, duration_s, protocol_chosen
+        run_dir = "runs/run_loaded_tm_pairing_%dMbps_for_%ds_with_%s" % (
+            udp_burst_Mbps, duration_s, protocol_chosen
         )
         logs_ns3_dir = run_dir + "/logs_ns3"
         local_shell.remove_force_recursive(logs_ns3_dir)
@@ -66,3 +66,5 @@ print("Waiting completion of the last %d..." % max_num_thread)
 while local_shell.count_screens() > 0:
     time.sleep(2)
 print("Finished.")
+
+# ./waf --run="main_satnet --run_dir='../../paper_routing/ns3_experiments/traffic_matrix/runs/run_loaded_tm_pairing_100_Kbps_for_200s_with_udp'" --gdb

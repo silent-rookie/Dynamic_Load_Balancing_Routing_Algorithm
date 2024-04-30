@@ -2,9 +2,10 @@
 
 import exputil
 import random
-from .generate_from_to_random_pair import generate_from_to_random_pair_top100_city, generate_pairs_logging_ids
+from generate_from_to_random_pair import generate_from_to_random_pair_top100_city, generate_pairs_logging_ids
 
 dynamic_state_update_interval_ns = 1000000000   # 1s
+pairs_num = 100
 
 local_shell = exputil.LocalShell()
 
@@ -15,9 +16,9 @@ local_shell.remove_force_recursive("data")
 for config in [
     # (ISL Rate in Mbit/s, GSL Rate in Mbit/s, ILL Rate in Mbit/s, 
     #   isl_max_queue_size_pkts, gsl_max_queue_size_pkts, ill_max_queue_size_pkts,
-    #   durations, udp_burst_Kbps)
+    #   durations, udp_burst_Mbps)
 
-    (2.5, 5, 25, 20000, 20000, 200000, 200, 100)
+    (2.5, 5, 25, 20000, 20000, 200000, 200, 0.1)
     #(2.5, 5, 25, 20000, 20000, 200000, 5736, 100)
 ]:
 
@@ -29,14 +30,14 @@ for config in [
     gsl_max_queue_size_pkts = config[4]
     ill_max_queue_size_pkts = config[5]
     duration_s = config[6]
-    udp_burst_Kbps = config[7]
+    udp_burst_Mbps = config[7]
 
     # unsupport tcp now
     for protocol_chosen in ["udp"]:
 
         # Prepare run directory
-        run_dir = "runs/run_loaded_tm_pairing_%d_Kbps_for_%ds_with_%s" % (
-                udp_burst_Kbps, duration_s, protocol_chosen
+        run_dir = "runs/run_loaded_tm_pairing_%dMbps_for_%ds_with_%s" % (
+                udp_burst_Mbps, duration_s, protocol_chosen
         )
         local_shell.remove_force_recursive(run_dir)
         local_shell.make_full_dir(run_dir)
@@ -72,7 +73,7 @@ for config in [
         # Schedule
         random.seed(123456789)
         seed_from_to = random.randint(0, 100000000) # Legacy reasons
-        pairs = generate_from_to_random_pair_top100_city(seed_from_to)
+        pairs = generate_from_to_random_pair_top100_city(pairs_num, seed_from_to)
 
         local_shell.sed_replace_in_file_plain(run_dir + "/config_ns3.properties",
                                               "[UDP_LOGGING_BURST_IDS]", generate_pairs_logging_ids(pairs))
@@ -86,7 +87,7 @@ for config in [
                             i,
                             pairs[i][0],
                             pairs[i][1],
-                            udp_burst_Kbps,
+                            udp_burst_Mbps,
                             0,
                             duration_s * 1000 * 1000 * 1000
                         )

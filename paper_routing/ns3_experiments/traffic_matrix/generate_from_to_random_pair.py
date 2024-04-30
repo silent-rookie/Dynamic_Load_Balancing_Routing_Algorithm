@@ -30,10 +30,14 @@ city_rate = [0.16, 0.1, 0.07, 0.1, 0.55, 0.02]
 
 
 
-def generate_from_to_random_pair_top100_city(pair_num, seed):
+def generate_from_to_random_pair_top100_city(pair_num, seed, num_satellites=1584):
     '''
-    pair_num:   the num of pair generate
-    seed:       random seed
+    pair_num:       the num of pair generate
+    seed:           random seed
+    num_satellites: num of satellites, for ground station offset
+                    for convinent, now we set it as 1584
+
+    return:     generate list with 2 * pair_num pairs
     '''
 
     # Set random seed
@@ -41,50 +45,57 @@ def generate_from_to_random_pair_top100_city(pair_num, seed):
 
     pairs = []
 
-    for i in range(len(pair_num)):
+    for i in range(pair_num):
         pair_from = random.randint(0, 99)
         pair_to = generate_random_city_from_to(pair_from)
-        pairs.append((pair_from, pair_to))
-        pairs.append((pair_to, pair_from))
+        pairs.append((pair_from + num_satellites, pair_to + num_satellites))
+        pairs.append((pair_to + num_satellites, pair_from + num_satellites))
     
     return pairs
 
 def generate_random_city_from_to(pair_from):
     if pair_from in NorthAmerica:
-        return generate_random_to_city(NorthAmerica_rate)
+        return generate_random_to_city(pair_from, NorthAmerica_rate)
     elif pair_from in SouthAmerica:
-        return generate_random_to_city(SouthAmerica_rate)
+        return generate_random_to_city(pair_from, SouthAmerica_rate)
     elif pair_from in Europe:
-        return generate_random_to_city(Europe_rate)
+        return generate_random_to_city(pair_from, Europe_rate)
     elif pair_from in Africa:
-        return generate_random_to_city(Africa_rate)
+        return generate_random_to_city(pair_from, Africa_rate)
     elif pair_from in Asia:
-        return generate_random_to_city(Asia_rate)
+        return generate_random_to_city(pair_from, Asia_rate)
     elif pair_from in Oceania:
-        return generate_random_to_city(Oceania_rate)
+        return generate_random_to_city(pair_from, Oceania_rate)
     else:
         raise ValueError("invalid pair_from: %d" % pair_from)
     
-def generate_random_to_city(rates):
+def generate_random_to_city(pair_from, rates):
     tmp_rates = []
     for i in range(len(rates)):
         tmp_rates.append(sum(rates[0 : i+1]))
+    
+    target_city = []
 
     tmp = random.random()
     if tmp < tmp_rates[0]:
-        return random.sample(NorthAmerica, 1)
+        target_city = NorthAmerica
     elif tmp < tmp_rates[1]:
-        return random.sample(SouthAmerica, 1)
+        target_city = SouthAmerica
     elif tmp < tmp_rates[2]:
-        return random.sample(Europe, 1)
+        target_city = Europe
     elif tmp < tmp_rates[3]:
-        return random.sample(Africa, 1)
+        target_city = Africa
     elif tmp < tmp_rates[4]:
-        return random.sample(Asia, 1)
+        target_city = Asia
     elif tmp < tmp_rates[5]:
-        return random.sample(Oceania, 1)
+        target_city = Oceania
     else:
         raise ValueError("invalid tmp value: %d" % tmp)
+    
+    while True:
+        tmp_city = random.sample(target_city, 1)[0]
+        if(tmp_city != pair_from):
+            return tmp_city
 
 def generate_pairs_logging_ids(pairs):
     res = "set("

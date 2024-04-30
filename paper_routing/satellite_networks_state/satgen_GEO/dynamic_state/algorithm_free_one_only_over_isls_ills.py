@@ -32,16 +32,17 @@ def algorithm_free_one_only_over_isls_ills(
     range. ("free") There is no reciprocation of the bandwidth asserted.
     ILL is also same to GSL.
 
-    "only_over_isls"
+    "only_over_isls_ills"
     It calculates a forwarding state, which is essentially a single shortest path.
     It only considers paths which go over the inter-satellite network, and does not make use of ground
     stations relay. This means that every path looks like:
     (src gs) - (sat) - (sat) - ... - (sat) - (dst gs)
+    (src gs) - (sat) - (sat) - (GEOsat) - (sat) - ... - (dst gs)
 
     """
 
     if enable_verbose_logs:
-        print("\nALGORITHM: FREE ONE ONLY OVER ISLS")
+        print("\nALGORITHM: FREE ONE ONLY OVER ISLS ILLS")
 
     # Check the graph
     if sat_net_graph_only_satellites_with_isls.number_of_nodes() != len(satellites):
