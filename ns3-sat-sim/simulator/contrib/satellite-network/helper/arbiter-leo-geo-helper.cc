@@ -200,7 +200,7 @@ void ArbiterLEOGEOHelper::UpdateForwardingState(int64_t t) {
             
                 // Add to temp next_hop_list
                 // Add 1 for skip the loop-back interface
-                next_hop_list.push_back(std::make_tuple(next_hop_node_id, my_if_id + 1, next_hop_node_id + 1));
+                next_hop_list.push_back(std::make_tuple(next_hop_node_id, my_if_id + 1, next_if_id + 1));
             }
 
             // Add to forwarding state
@@ -250,7 +250,7 @@ void ArbiterLEOGEOHelper::UpdateIllsState(int64_t t){
             NS_ABORT_MSG_IF(geo < 0 || geo >= m_topology->GetNumGEOSatellites(), "invalid GEOsatellite node id of ill");
             
             // Add to ills state
-            m_arbiters_leo_gs.at(sat)->SetLEONextGEOID(geo + m_topology->GetNumSatellites() + m_topology->GetNumGEOSatellites());
+            m_arbiters_leo_gs.at(sat)->SetLEONextGEOID(geo + m_topology->GetNumSatellites() + m_topology->GetNumGroundStations());
         }
 
         // Close file

@@ -37,7 +37,7 @@ for config in [
     for protocol_chosen in ["udp"]:
 
         # Prepare run directory
-        run_dir = "runs/run_loaded_tm_pairing_%dMbps_for_%ds_with_%s" % (
+        run_dir = "runs/run_loaded_tm_pairing_%fMbps_for_%ds_with_%s" % (
             udp_burst_Mbps, duration_s, protocol_chosen
         )
         logs_ns3_dir = run_dir + "/logs_ns3"

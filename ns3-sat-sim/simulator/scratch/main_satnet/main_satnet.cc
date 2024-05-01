@@ -47,13 +47,6 @@
 
 using namespace ns3;
 
-void UpdateSimulateProgress(int64_t t){
-    // update the whole project progress every 1s
-    int64_t next_update_ns = t + 1;
-    std::cout << "The project now simulate at time: " + std::to_string(t) + "s" << std::endl;
-    Simulator::Schedule(NanoSeconds(1000000000), &UpdateSimulateProgress, next_update_ns);
-}
-
 int main(int argc, char *argv[]) {
 
     // No buffering of printf
@@ -82,7 +75,6 @@ int main(int argc, char *argv[]) {
     // Read topology, and install routing arbiters
     Ptr<TopologySatelliteNetwork> topology = CreateObject<TopologySatelliteNetwork>(basicSimulation, Ipv4ArbiterRoutingHelper());
     ArbiterLEOGEOHelper arbiterHelper(basicSimulation, topology);
-    UpdateSimulateProgress(0);
 
     // Schedule flows
     TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true
