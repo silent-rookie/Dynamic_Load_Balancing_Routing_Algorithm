@@ -33,8 +33,6 @@ namespace ns3 {
     {
     public:
         ArbiterSingleForwardHelper(Ptr<BasicSimulation> basicSimulation, NodeContainer nodes);
-
-        static DataRate GetReceiveDatarateForNode(Ptr<Node> node);
     private:
         std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> InitialEmptyForwardingState();
         void UpdateForwardingState(int64_t t);
