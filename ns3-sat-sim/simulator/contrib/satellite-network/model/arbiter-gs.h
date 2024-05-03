@@ -1,26 +1,31 @@
 /**
- * Author: silent-rookie    2024
+ * Author:  silent-rookie      2024
 */
 
 
 
-#ifndef ARBITER_GEO_H
-#define ARBITER_GEO_H
+#ifndef ARBITER_GS_H
+#define ARBITER_GS_H
 
 #include "ns3/arbiter-satnet.h"
+#include "ns3/abort.h"
+#include "ns3/ipv4-header.h"
+#include "ns3/udp-header.h"
+#include "ns3/tcp-header.h"
 
-namespace ns3{
+namespace ns3 {
 
-class ArbiterLEOGSGEOHelper; 
+class ArbiterLEOGSGEOHelper;
 
-class ArbiterGEO: public ArbiterSatnet
+class ArbiterGS : public ArbiterSatnet
 {
 public:
     static TypeId GetTypeId (void);
 
-    ArbiterGEO(
+    ArbiterGS(
             Ptr<Node> this_node,
             NodeContainer nodes,
+            std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> next_hop_lists,
             ArbiterLEOGSGEOHelper* arbiter_helper
     );
 
@@ -35,16 +40,10 @@ public:
             bool is_socket_request_for_source_ip
     );
 
-    // find the next leo to for GEOsatellite
-    std::tuple<int32_t, int32_t, int32_t> FindNextHopForGEO(int32_t from, int32_t target_node_id);
+    // Update the forward state
+    void SetGSForwardState(int32_t target_node_id, std::vector<std::tuple<int32_t, int32_t, int32_t>> next_hop_list);
 
-    /**
-     * \brief push the next hop information
-     * \param pkt the forward packet
-     * \param from the packet forward from
-     * \param to the packet send to
-    */
-    void PushGEONextHop(ns3::Ptr<const ns3::Packet> pkt, int32_t from);
+    std::vector<std::tuple<int32_t, int32_t, int32_t>> GetGSForwardState(int32_t target_node_id);
 
     std::string StringReprOfForwardingState();
 
@@ -52,11 +51,12 @@ private:
     // update detour information each interval: receive_datarate_update_interval_ns
     void UpdateReceiveDatarate();
 
+protected:
     ArbiterLEOGSGEOHelper* m_arbiter_helper;
-    std::unordered_map<uint64_t , int32_t> m_geo_pkt_next_hop_map;
+    std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> m_next_hop_lists;
 
     static int64_t receive_datarate_update_interval_ns;     // the interval that a netdevice receive datarate update
-    static double ill_data_rate_megabit_per_s;
+    static double gsl_data_rate_megabit_per_s;
     static int64_t num_satellites;
     static int64_t num_groundstations;
     static int64_t num_GEOsatellites;
@@ -64,6 +64,4 @@ private:
 
 }
 
-
-
-#endif
+#endif //ARBITER_LEO_GEO_H

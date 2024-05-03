@@ -43,7 +43,7 @@
 #include "ns3/arbiter-single-forward-helper.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
 #include "ns3/gsl-if-bandwidth-helper.h"
-#include "ns3/arbiter-leo-geo-helper.h"
+#include "ns3/arbiter-leo-gs-geo-helper.h"
 
 using namespace ns3;
 
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 
     // Read topology, and install routing arbiters
     Ptr<TopologySatelliteNetwork> topology = CreateObject<TopologySatelliteNetwork>(basicSimulation, Ipv4ArbiterRoutingHelper());
-    ArbiterLEOGEOHelper arbiterHelper(basicSimulation, topology);
+    ArbiterLEOGSGEOHelper arbiterHelper(basicSimulation, topology);
 
     // Schedule flows
     TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true

@@ -18,8 +18,9 @@ def build(bld):
         'helper/gsl-if-bandwidth-helper.cc',
         'model/receive-datarate-device.cc',
         'model/arbiter-geo.cc',
-        'model/arbiter-leo-gs.cc',
-        'helper/arbiter-leo-geo-helper.cc'
+        'model/arbiter-leo.cc',
+        'model/arbiter-gs.cc',
+        'helper/arbiter-leo-gs-geo-helper.cc'
         ]
 
     module_test = bld.create_ns3_module_test_library('satellite-network')
@@ -45,8 +46,9 @@ def build(bld):
         'helper/gsl-if-bandwidth-helper.h',
         'model/receive-datarate-device.h',
         'model/arbiter-geo.h',
-        'model/arbiter-leo-gs.h',
-        'helper/arbiter-leo-geo-helper.h'
+        'model/arbiter-leo.h',
+        'model/arbiter-gs.h',
+        'helper/arbiter-leo-gs-geo-helper.h'
         ]
 
     if bld.env.ENABLE_EXAMPLES:
