@@ -110,6 +110,9 @@ void ArbiterGS::UpdateReceiveDatarate(){
             NS_ABORT_MSG("Unidentified NetDevice in GS");
         }
     }
+
+    // Plan next update
+    Simulator::Schedule(NanoSeconds(receive_datarate_update_interval_ns), &ArbiterGS::UpdateReceiveDatarate, this);
 }
 
 }

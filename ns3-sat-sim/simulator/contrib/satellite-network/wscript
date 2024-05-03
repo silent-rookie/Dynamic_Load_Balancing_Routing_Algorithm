@@ -20,7 +20,9 @@ def build(bld):
         'model/arbiter-geo.cc',
         'model/arbiter-leo.cc',
         'model/arbiter-gs.cc',
-        'helper/arbiter-leo-gs-geo-helper.cc'
+        'helper/arbiter-leo-gs-geo-helper.cc',
+        'model/arbiter-traffic-leo.cc',
+        'helper/arbiter-traffic-classify-helper.cc'
         ]
 
     module_test = bld.create_ns3_module_test_library('satellite-network')
@@ -48,7 +50,9 @@ def build(bld):
         'model/arbiter-geo.h',
         'model/arbiter-leo.h',
         'model/arbiter-gs.h',
-        'helper/arbiter-leo-gs-geo-helper.h'
+        'helper/arbiter-leo-gs-geo-helper.h',
+        'model/arbiter-traffic-leo.h',
+        'helper/arbiter-traffic-classify-helper.h'
         ]
 
     if bld.env.ENABLE_EXAMPLES:

@@ -25,7 +25,8 @@ namespace ns3 {
         Ptr<ArbiterGS> GetArbiterGS(size_t index);
         Ptr<ArbiterGEO> GetArbiterGEO(size_t index);
 
-    private:
+    protected:
+        virtual void InstallArbiter(Ptr<BasicSimulation> basicSimulation, Ptr<TopologySatelliteNetwork> topology);
 
         std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> InitialEmptyForwardingState();
         void UpdateState(int64_t t);

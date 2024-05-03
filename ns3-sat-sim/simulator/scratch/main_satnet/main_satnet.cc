@@ -40,10 +40,10 @@
 #include "ns3/pingmesh-scheduler.h"
 #include "ns3/topology-satellite-network.h"
 #include "ns3/tcp-optimizer.h"
-#include "ns3/arbiter-single-forward-helper.h"
 #include "ns3/ipv4-arbiter-routing-helper.h"
-#include "ns3/gsl-if-bandwidth-helper.h"
 #include "ns3/arbiter-leo-gs-geo-helper.h"
+#include "ns3/arbiter-single-forward-helper.h"
+#include "ns3/arbiter-traffic-classify-helper.h"
 
 using namespace ns3;
 
@@ -72,9 +72,29 @@ int main(int argc, char *argv[]) {
     // Optimize TCP
     TcpOptimizer::OptimizeBasic(basicSimulation);
 
+    // Read algorighm
+    std::string algorithm = basicSimulation->GetConfigParamOrFail("algorighm");
+    NS_ABORT_MSG_IF(algorithm != "SingleForward" && algorithm != "DetourBasic" && algorithm != "DetourTrafficClassify",
+                        "invalid algorighm: " + algorithm);
+    std::cout << std::endl;
+    std::cout << "////////////////////////////////////////" << std::endl;
+    std::cout << "/                                      /" << std::endl;
+    std::cout << "         " << algorithm << std::endl;
+    std::cout << "/                                      /" << std::endl;
+    std::cout << "////////////////////////////////////////" << std::endl;
+    std::cout << std::endl;
+
     // Read topology, and install routing arbiters
     Ptr<TopologySatelliteNetwork> topology = CreateObject<TopologySatelliteNetwork>(basicSimulation, Ipv4ArbiterRoutingHelper());
-    ArbiterLEOGSGEOHelper arbiterHelper(basicSimulation, topology);
+    if(algorithm == "SingleForward"){
+        ArbiterSingleForwardHelper arbiterHelper(basicSimulation, topology->GetNodes());
+    }
+    else if(algorithm == "DetourBasic"){
+        ArbiterLEOGSGEOHelper arbiterHelper(basicSimulation, topology);
+    }
+    else if(algorithm == "DetourTrafficClassify"){
+        ArbiterTrafficClassifyHelper arbiterHelper(basicSimulation, topology);
+    }
 
     // Schedule flows
     TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true

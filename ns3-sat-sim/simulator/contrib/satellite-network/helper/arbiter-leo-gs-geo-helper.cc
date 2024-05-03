@@ -11,6 +11,22 @@ ArbiterLEOGSGEOHelper::ArbiterLEOGSGEOHelper(Ptr<BasicSimulation> basicSimulatio
     std::cout << "SETUP LEOGEO FORWARDING ROUTING" << std::endl;
     m_basicSimulation = basicSimulation;
     m_topology = topology;
+    
+    InstallArbiter(basicSimulation, topology);
+
+    // Load first forwarding state
+    m_dynamicStateUpdateIntervalNs = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("dynamic_state_update_interval_ns"));
+    std::cout << "  > Forward state update interval: " << m_dynamicStateUpdateIntervalNs << "ns" << std::endl;
+    std::cout << "  > Perform first forwarding ills state load for t=0" << std::endl;
+    UpdateState(0);
+    basicSimulation->RegisterTimestamp("Create initial LEOGSGEO forwarding ills state");
+
+    std::cout << std::endl;
+}
+
+void ArbiterLEOGSGEOHelper::InstallArbiter(Ptr<BasicSimulation> basicSimulation, 
+                                        Ptr<TopologySatelliteNetwork> topology)
+{
     NodeContainer m_nodes = topology->GetNodes();
 
     // Read in initial forwarding state
@@ -44,15 +60,6 @@ ArbiterLEOGSGEOHelper::ArbiterLEOGSGEOHelper(Ptr<BasicSimulation> basicSimulatio
         m_nodes.Get(geo_id)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->SetArbiter(arbiter);
     }
     basicSimulation->RegisterTimestamp("Setup routing arbiter on each node");
-
-    // Load first forwarding state
-    m_dynamicStateUpdateIntervalNs = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("dynamic_state_update_interval_ns"));
-    std::cout << "  > Forward state update interval: " << m_dynamicStateUpdateIntervalNs << "ns" << std::endl;
-    std::cout << "  > Perform first forwarding ills state load for t=0" << std::endl;
-    UpdateState(0);
-    basicSimulation->RegisterTimestamp("Create initial LEOGSGEO forwarding ills state");
-
-    std::cout << std::endl;
 }
 
 Ptr<ArbiterLEO> ArbiterLEOGSGEOHelper::GetArbiterLEO(size_t index){
