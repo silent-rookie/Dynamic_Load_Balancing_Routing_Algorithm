@@ -48,7 +48,7 @@ ArbiterLEOGS::ArbiterLEOGS(
 
     // Initialize must before
     NS_ABORT_MSG_IF(receive_datarate_update_interval_ns == 0, "Initialize must before");
-    UpdateDetour();
+    UpdateState();
 }
 
 void ArbiterLEOGS::Initialize(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs){
@@ -91,7 +91,7 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterLEOGS::TopologySatelliteNetworkDeci
             int32_t target_index = std::get<0>(m_next_hop_lists[target_node_id][i]);
             Ptr<Node> target_node = m_nodes.Get(target_index);
             if( target_index == target_node_id || 
-                !m_arbiter_leogeo_helper->m_arbiters_leo_gs[target_index]->CheckIfNeedDetour()){
+                !m_arbiter_leogeo_helper->GetArbiterLEOGS(target_index)->CheckIfNeedDetour()){
                 // find a neighbor ground station
                 // or
                 // find a neighbor leo satellite which can be forward
@@ -106,7 +106,7 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterLEOGS::TopologySatelliteNetworkDeci
 
             // make the GEOsatellite know the pkt is forward from current node
             int32_t target_geo_id = m_next_GEO_node_id - num_satellites - num_groundstations;
-            m_arbiter_leogeo_helper->m_arbiters_geo[target_geo_id]->PushGEONextHop(pkt, m_node_id);
+            m_arbiter_leogeo_helper->GetArbiterGEO(target_geo_id)->PushGEONextHop(pkt, m_node_id);
 
             // interface for device in satellite:
             // 0: loop-back interface
@@ -176,6 +176,14 @@ void ArbiterLEOGS::ScheduleTraficJamArea(std::pair<Ptr<MobilityModel>, bool>& pt
     ptr.second = true;
 }
 
+void ArbiterLEOGS::UpdateState(){
+    UpdateReceiveDatarate();
+    UpdateDetour();
+
+    // Plan next update
+    Simulator::Schedule(NanoSeconds(receive_datarate_update_interval_ns), &ArbiterLEOGS::UpdateState, this);
+}
+
 void ArbiterLEOGS::UpdateDetour(){
     // interface for device in satellite:
     // 0: loop-back interface
@@ -216,19 +224,18 @@ void ArbiterLEOGS::UpdateDetour(){
     // (but is GSLNetDevice because we did not implement ILLNetDevice), so we skip it
     for(uint32_t i = 1; i < num_interfaces && i < 6; ++i){
         uint64_t now_bps, target_bps;
+        now_bps = 0;
+        target_bps = 0;
         if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>() != 0){
             // GSL NetDevice
-            Ptr<GSLNetDevice> gsl = node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>();
-            // update receive datarate
-            gsl->UpdateReceiveDataRate();
-            now_bps = gsl->GetReceiveDataRate().GetBitRate();
-            target_bps = DataRate(std::to_string(gsl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
+            // NOTE: GSL do not calculate in trafic jam
+            // Ptr<GSLNetDevice> gsl = node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>();
+            // now_bps = gsl->GetReceiveDataRate().GetBitRate();
+            // target_bps = DataRate(std::to_string(gsl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
         }
         else if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>() != 0){
             // ISL NetDevice
             Ptr<PointToPointLaserNetDevice> isl = node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>();
-            // update receive datarate
-            isl->UpdateReceiveDataRate();
             now_bps = isl->GetReceiveDataRate().GetBitRate();
             target_bps = DataRate(std::to_string(isl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
         }
@@ -277,6 +284,12 @@ void ArbiterLEOGS::UpdateDetour(){
             // must after trafic_jam_update_interval_ns
             if(ptr->second){
                 trafic_jam_areas.erase(ptr);
+
+                // display the progres of trafic jam list(in case the list is too long)
+                size_t areas_size = trafic_jam_areas.size();
+                if((areas_size % 5) == 0){
+                    std::cout << "The trafic jam list size(decrease): " << areas_size << std::endl;
+                }
             }
         }
     }
@@ -287,16 +300,13 @@ void ArbiterLEOGS::UpdateDetour(){
         // display the progres of trafic jam list(in case the list is too long)
         size_t areas_size = trafic_jam_areas.size();
         if((areas_size % 5) == 0){
-            std::cout << "The trafic jam list size: " + areas_size << std::endl;
+            std::cout << "The trafic jam list size(increase): " << areas_size << std::endl;
         }
         NS_ABORT_MSG_IF(areas_size > 30, "The trafic jam list size is bigger than 30(too big)");
     }
 
     // update if the node need detour which attach to this arbiter
     is_detour = is_need_detour;
-
-    // plan next update
-    Simulator::Schedule(NanoSeconds(receive_datarate_update_interval_ns), &ArbiterLEOGS::UpdateDetour, this);
 }
 
 void ArbiterLEOGS::UpdateReceiveDatarate(){
@@ -328,9 +338,6 @@ void ArbiterLEOGS::UpdateReceiveDatarate(){
             NS_ABORT_MSG("Unidentified NetDevice");
         }
     }
-
-    // Plan next update
-    Simulator::Schedule(NanoSeconds(receive_datarate_update_interval_ns), &ArbiterLEOGS::UpdateReceiveDatarate, this);
 }
 
 }

@@ -60,9 +60,9 @@ private:
     typedef std::list<std::pair<Ptr<MobilityModel>, bool>> TraficAreasList;
 
     // update detour information each interval: receive_datarate_update_interval_ns
-    // Note: we also update receive datarate rate for each netdevice
     void UpdateDetour();
     void UpdateReceiveDatarate();
+    void UpdateState();
 
     // Schedule that after trafic_jam_update_interval_ns, 
     // a jam area can be transformed to non-jam area
@@ -71,6 +71,7 @@ private:
     // if the node which attach to this arbiter is detour
     bool is_detour;
 
+protected:
     int32_t m_next_GEO_node_id;
     ArbiterLEOGEOHelper* m_arbiter_leogeo_helper;
     std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> m_next_hop_lists;

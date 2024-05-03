@@ -46,6 +46,16 @@ ArbiterLEOGEOHelper::ArbiterLEOGEOHelper(Ptr<BasicSimulation> basicSimulation,
     std::cout << std::endl;
 }
 
+Ptr<ArbiterLEOGS> ArbiterLEOGEOHelper::GetArbiterLEOGS(size_t index){
+    if(index < 0 || index >= m_arbiters_leo_gs.size()) return 0;
+    return m_arbiters_leo_gs[index];
+}
+        
+Ptr<ArbiterGEO> ArbiterLEOGEOHelper::GetArbiterGEO(size_t index){
+    if(index < 0 || index >= m_arbiters_geo.size()) return 0;
+    return m_arbiters_geo[index];
+}
+
 std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> 
 ArbiterLEOGEOHelper::InitialEmptyForwardingState(){
     size_t num_leo_gs = m_topology->GetNumSatellites() + m_topology->GetNumGroundStations();

@@ -20,9 +20,10 @@ namespace ns3 {
     public:
         ArbiterLEOGEOHelper(Ptr<BasicSimulation> basicSimulation, Ptr<TopologySatelliteNetwork> topology);
 
+        Ptr<ArbiterLEOGS> GetArbiterLEOGS(size_t index);
+        Ptr<ArbiterGEO> GetArbiterGEO(size_t index);
+
     private:
-        friend class ArbiterLEOGS;
-        friend class ArbiterGEO;
 
         std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> InitialEmptyForwardingState();
         void UpdateState(int64_t t);
