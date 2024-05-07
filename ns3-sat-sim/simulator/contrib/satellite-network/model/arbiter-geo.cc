@@ -32,7 +32,7 @@ TypeId ArbiterGEO::GetTypeId (void)
 ArbiterGEO::ArbiterGEO(
             Ptr<Node> this_node,
             NodeContainer nodes,
-            ArbiterLEOGSGEOHelper* arbiter_helper
+            Ptr<ArbiterLEOGSGEOHelper> arbiter_helper
     ): ArbiterSatnet(this_node, nodes)
 {
     m_arbiter_helper = arbiter_helper;
@@ -42,7 +42,7 @@ ArbiterGEO::ArbiterGEO(
     UpdateReceiveDatarate();
 }
 
-void ArbiterGEO::Initialize(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo){
+void ArbiterGEO::InitializeArbiter(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo){
     receive_datarate_update_interval_ns = parse_positive_int64(basicSimulation->GetConfigParamOrFail("receive_datarate_update_interval_ns"));
     ill_data_rate_megabit_per_s = parse_positive_double(basicSimulation->GetConfigParamOrFail("ill_data_rate_megabit_per_s"));
     num_satellites = num_sat;

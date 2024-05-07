@@ -21,10 +21,10 @@ public:
     ArbiterGEO(
             Ptr<Node> this_node,
             NodeContainer nodes,
-            ArbiterLEOGSGEOHelper* arbiter_helper
+            Ptr<ArbiterLEOGSGEOHelper> arbiter_helper
     );
 
-    static void Initialize(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo);
+    static void InitializeArbiter(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo);
 
     // LEOGEO forward next-hop implementation
     std::tuple<int32_t, int32_t, int32_t> TopologySatelliteNetworkDecide(
@@ -52,7 +52,7 @@ private:
     // update detour information each interval: receive_datarate_update_interval_ns
     void UpdateReceiveDatarate();
 
-    ArbiterLEOGSGEOHelper* m_arbiter_helper;
+    Ptr<ArbiterLEOGSGEOHelper> m_arbiter_helper;
     std::unordered_map<uint64_t , int32_t> m_geo_pkt_next_hop_map;
 
     static int64_t receive_datarate_update_interval_ns;     // the interval that a netdevice receive datarate update

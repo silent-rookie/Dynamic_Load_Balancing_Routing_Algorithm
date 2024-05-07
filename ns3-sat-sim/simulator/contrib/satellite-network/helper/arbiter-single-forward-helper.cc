@@ -21,15 +21,30 @@
 
 namespace ns3 {
 
-ArbiterSingleForwardHelper::ArbiterSingleForwardHelper (Ptr<BasicSimulation> basicSimulation, NodeContainer nodes) {
+NS_OBJECT_ENSURE_REGISTERED (ArbiterSingleForwardHelper);
+
+TypeId ArbiterSingleForwardHelper::GetTypeId (void){
+    static TypeId tid = TypeId ("ns3::ArbiterSingleForwardHelper")
+            .SetParent<ArbiterHelper> ()
+            .SetGroupName("BasicSim")
+    ;
+    return tid;
+}
+
+ArbiterSingleForwardHelper::ArbiterSingleForwardHelper(Ptr<BasicSimulation> basicSimulation, 
+                                                        Ptr<TopologySatelliteNetwork> topology)
+: ArbiterHelper(basicSimulation, topology)
+{
+    m_nodes = topology->GetNodes();
+}
+
+void ArbiterSingleForwardHelper::Install(){
     std::cout << "SETUP SINGLE FORWARDING ROUTING" << std::endl;
-    m_basicSimulation = basicSimulation;
-    m_nodes = nodes;
 
     // Read in initial forwarding state
     std::cout << "  > Create initial single forwarding state" << std::endl;
     std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> initial_forwarding_state = InitialEmptyForwardingState();
-    basicSimulation->RegisterTimestamp("Create initial single forwarding state");
+    m_basicSimulation->RegisterTimestamp("Create initial single forwarding state");
 
     // Set the routing arbiters
     std::cout << "  > Setting the routing arbiter on each node" << std::endl;
@@ -38,14 +53,14 @@ ArbiterSingleForwardHelper::ArbiterSingleForwardHelper (Ptr<BasicSimulation> bas
         m_arbiters.push_back(arbiter);
         m_nodes.Get(i)->GetObject<Ipv4>()->GetRoutingProtocol()->GetObject<Ipv4ArbiterRouting>()->SetArbiter(arbiter);
     }
-    basicSimulation->RegisterTimestamp("Setup routing arbiter on each node");
+    m_basicSimulation->RegisterTimestamp("Setup routing arbiter on each node");
 
     // Load first forwarding state
     m_dynamicStateUpdateIntervalNs = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("dynamic_state_update_interval_ns"));
     std::cout << "  > Forward state update interval: " << m_dynamicStateUpdateIntervalNs << "ns" << std::endl;
     std::cout << "  > Perform first forwarding state load for t=0" << std::endl;
     UpdateForwardingState(0);
-    basicSimulation->RegisterTimestamp("Create initial single forwarding state");
+    m_basicSimulation->RegisterTimestamp("Create initial single forwarding state");
 
     std::cout << std::endl;
 }

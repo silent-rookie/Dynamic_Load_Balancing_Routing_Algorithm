@@ -24,7 +24,7 @@ ArbiterTrafficLEO::ArbiterTrafficLEO(
             NodeContainer nodes,
             int32_t next_GEO_hop,
             std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> next_hop_lists,
-            ArbiterLEOGSGEOHelper* arbiter_leogeo_helper
+            Ptr<ArbiterLEOGSGEOHelper> arbiter_leogeo_helper
 ): ArbiterLEO(this_node, nodes, next_GEO_hop, next_hop_lists, arbiter_leogeo_helper)
 {
 
@@ -45,7 +45,7 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterTrafficLEO::TopologySatelliteNetwor
     TrafficClass pclass = Tos2TrafficClass(pheader.GetTos());
 
     // the packet not implement traffic class
-    // we just hand over to ArbiterLEOGS
+    // we just hand over to ArbiterLEO
     if(pclass == TrafficClass::class_default){
         return ArbiterLEO::TopologySatelliteNetworkDecide(source_node_id, target_node_id, pkt, ipHeader, is_socket_request_for_source_ip);
     }

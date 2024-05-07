@@ -13,29 +13,29 @@
 #include "ns3/arbiter-leo.h"
 #include "ns3/arbiter-gs.h"
 #include "ns3/arbiter-geo.h"
+#include "ns3/arbiter-helper.h"
 
 namespace ns3 {
 
-    class ArbiterLEOGSGEOHelper
+    class ArbiterLEOGSGEOHelper : public ArbiterHelper
     {
     public:
+        static TypeId GetTypeId (void);
         ArbiterLEOGSGEOHelper(Ptr<BasicSimulation> basicSimulation, Ptr<TopologySatelliteNetwork> topology);
+
+        virtual void Install() override;
 
         Ptr<ArbiterLEO> GetArbiterLEO(size_t index);
         Ptr<ArbiterGS> GetArbiterGS(size_t index);
         Ptr<ArbiterGEO> GetArbiterGEO(size_t index);
 
     protected:
-        virtual void InstallArbiter(Ptr<BasicSimulation> basicSimulation, Ptr<TopologySatelliteNetwork> topology);
-
         std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> InitialEmptyForwardingState();
         void UpdateState(int64_t t);
         void UpdateForwardingState(int64_t t);
         void UpdateIllsState(int64_t t);
 
         // Parameters
-        Ptr<BasicSimulation> m_basicSimulation;
-        Ptr<TopologySatelliteNetwork> m_topology;
         int64_t m_dynamicStateUpdateIntervalNs;
         std::vector<Ptr<ArbiterLEO>> m_arbiters_leo;
         std::vector<Ptr<ArbiterGS>> m_arbiters_gs;

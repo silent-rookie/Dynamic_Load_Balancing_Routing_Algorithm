@@ -31,7 +31,7 @@ ArbiterGS::ArbiterGS(
         Ptr<Node> this_node,
         NodeContainer nodes,
         std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> next_hop_lists,
-        ArbiterLEOGSGEOHelper* arbiter_helper
+        Ptr<ArbiterLEOGSGEOHelper> arbiter_helper
 ) : ArbiterSatnet(this_node, nodes)
 {
     m_next_hop_lists = next_hop_lists;
@@ -42,7 +42,7 @@ ArbiterGS::ArbiterGS(
     UpdateReceiveDatarate();
 }
 
-void ArbiterGS::Initialize(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo){
+void ArbiterGS::InitializeArbiter(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo){
     receive_datarate_update_interval_ns = parse_positive_int64(basicSimulation->GetConfigParamOrFail("receive_datarate_update_interval_ns"));
     gsl_data_rate_megabit_per_s = parse_positive_double(basicSimulation->GetConfigParamOrFail("gsl_data_rate_megabit_per_s"));
     num_satellites = num_sat;

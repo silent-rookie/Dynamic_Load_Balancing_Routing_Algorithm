@@ -13,10 +13,10 @@ namespace ns3 {
     class ArbiterTrafficClassifyHelper : public ArbiterLEOGSGEOHelper
     {
     public:
+        static TypeId GetTypeId (void);
         ArbiterTrafficClassifyHelper(Ptr<BasicSimulation> basicSimulation, Ptr<TopologySatelliteNetwork> topology);
 
-    protected:
-        virtual void InstallArbiter(Ptr<BasicSimulation> basicSimulation, Ptr<TopologySatelliteNetwork> topology) override;
+        void Install() override;
 
     };
 

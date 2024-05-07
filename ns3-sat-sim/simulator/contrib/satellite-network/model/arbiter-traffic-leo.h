@@ -26,7 +26,7 @@ public:
             NodeContainer nodes,
             int32_t next_GEO_hop,
             std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> next_hop_lists,
-            ArbiterLEOGSGEOHelper* arbiter_leogeo_helper
+            Ptr<ArbiterLEOGSGEOHelper> arbiter_leogeo_helper
     );
 
     std::tuple<int32_t, int32_t, int32_t> TopologySatelliteNetworkDecide(

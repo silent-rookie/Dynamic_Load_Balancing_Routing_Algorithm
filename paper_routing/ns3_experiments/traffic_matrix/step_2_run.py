@@ -2,13 +2,15 @@
 
 import exputil
 import time
+from run_list import get_run_list
+
 local_shell = exputil.LocalShell()
 
 # Get workload identifier from argument
-max_num_thread = 8
+max_num_thread = 1
 
 # Clear old runs
-local_shell.perfect_exec("rm -rf runs/*/logs_ns3")
+# local_shell.perfect_exec("rm -rf runs/*/logs_ns3")
 
 # Check that no screen is running
 if local_shell.count_screens() != 0:
@@ -19,38 +21,17 @@ if local_shell.count_screens() != 0:
 # Generate the commands
 commands_to_run = []
 
+for run in get_run_list():
+    logs_ns3_dir = "runs/" + run["name"] + "/logs_ns3"
+    local_shell.remove_force_recursive(logs_ns3_dir)
+    local_shell.make_full_dir(logs_ns3_dir)
+    commands_to_run.append(
+        "cd ../../../ns3-sat-sim/simulator; "
+        "./waf --run=\"main_satnet "
+        "--run_dir='../../paper_routing/ns3_experiments/traffic_matrix/runs/" + run["name"] + "'\" "
+        "2>&1 | tee '../../paper_routing/ns3_experiments/traffic_matrix/" + logs_ns3_dir + "/console.txt'"
+    )
 
-for config in [
-    # (ISL Rate in Mbit/s, GSL Rate in Mbit/s, ILL Rate in Mbit/s, 
-    #   isl_max_queue_size_pkts, gsl_max_queue_size_pkts, ill_max_queue_size_pkts,
-    #   durations, udp_burst_Kbps)
-
-    (2.5, 5, 25, 20000, 20000, 200000, 200, 0.1)
-    #(2.5, 5, 25, 20000, 20000, 200000, 5736, 0.1)
-]:
-
-    # Retrieve values from the config
-    duration_s = config[6]
-    udp_burst_Mbps = config[7]
-
-    # unsupport tcp now
-    for protocol_chosen in ["udp"]:
-
-        # Prepare run directory
-        run_dir = "runs/run_loaded_tm_pairing_%fMbps_for_%ds_with_%s" % (
-            udp_burst_Mbps, duration_s, protocol_chosen
-        )
-        logs_ns3_dir = run_dir + "/logs_ns3"
-        local_shell.remove_force_recursive(logs_ns3_dir)
-        local_shell.make_full_dir(logs_ns3_dir)
-
-        # Perform run
-        commands_to_run.append(
-            "cd ../../../ns3-sat-sim/simulator; "
-            "./waf --run=\"main_satnet "
-            "--run_dir='../../paper_routing/ns3_experiments/traffic_matrix/" + run_dir + "'\""
-            " 2>&1 | tee '../../paper_routing/ns3_experiments/traffic_matrix/" + logs_ns3_dir + "/console.txt'",
-        )
 
 
 # Run the commands

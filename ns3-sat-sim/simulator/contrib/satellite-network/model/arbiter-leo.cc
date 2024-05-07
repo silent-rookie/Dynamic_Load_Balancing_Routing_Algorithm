@@ -13,6 +13,7 @@ namespace ns3{
 NS_OBJECT_ENSURE_REGISTERED (ArbiterLEO);
 
 ArbiterLEO::TraficAreasList ArbiterLEO::trafic_jam_areas;      // list of trafic jam area position
+ArbiterLEO::TraficAreasTime ArbiterLEO::trafic_areas_time;      // unordered map to record the time LEO satellite enter trafic jam area
 double ArbiterLEO::trafic_judge_rate_in_jam = 0;                  // Determine if a detour is necessary in jam area
 double ArbiterLEO::trafic_judge_rate_non_jam = 0;                 // Determine if a detour is necessary in not-jam area
 double ArbiterLEO::trafic_judge_rate_jam_to_normal = 0;           // Determine if a trafic jam area is transform to not-jam area
@@ -40,7 +41,7 @@ ArbiterLEO::ArbiterLEO(
         NodeContainer nodes,
         int32_t next_GEO_node_id,
         std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> next_hop_lists,
-        ArbiterLEOGSGEOHelper* arbiter_helper
+        Ptr<ArbiterLEOGSGEOHelper> arbiter_helper
 ) : ArbiterSatnet(this_node, nodes)
 {
     is_detour = false;
@@ -53,7 +54,7 @@ ArbiterLEO::ArbiterLEO(
     UpdateState();
 }
 
-void ArbiterLEO::Initialize(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo){
+void ArbiterLEO::InitializeArbiter(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo){
     trafic_judge_rate_in_jam = parse_positive_double(basicSimulation->GetConfigParamOrFail("trafic_judge_rate_in_jam"));
     trafic_judge_rate_non_jam = parse_positive_double(basicSimulation->GetConfigParamOrFail("trafic_judge_rate_non_jam"));
     trafic_judge_rate_jam_to_normal = parse_positive_double(basicSimulation->GetConfigParamOrFail("trafic_judge_rate_jam_to_normal"));
@@ -143,27 +144,28 @@ bool ArbiterLEO::CheckIfNeedDetour(){
 
 bool ArbiterLEO::CheckIfInTraficJamArea(){
     // check if the node is in trafic jam area
-    Ptr<Node> node = m_nodes.Get(m_node_id);
-    Ptr<MobilityModel> aMobility = node->GetObject<MobilityModel>();
     TraficAreasList::iterator ptr = trafic_jam_areas.begin();
     while(ptr != trafic_jam_areas.end()){
-        Ptr<MobilityModel> bMobility = ptr->first;
-        double distance = aMobility->GetDistanceFrom (bMobility);
-        if(distance < trafic_jam_area_radius_m){
+        if(CheckIfInTheTraficJamArea(*ptr))
             return true;
-        }
         ++ptr;
     }
 
     return false;
 }
 
-std::string ArbiterLEO::StringReprOfForwardingState(){
-    return "ArbiterLEO forwarding state";
+bool ArbiterLEO::CheckIfInTheTraficJamArea(Ptr<MobilityModel> target){
+    Ptr<Node> node = m_nodes.Get(m_node_id);
+    Ptr<MobilityModel> current_mobility = node->GetObject<MobilityModel>();
+    double distance = current_mobility->GetDistanceFrom (target);
+    if(distance < trafic_jam_area_radius_m)
+        return true;
+    else
+        return false;
 }
 
-void ArbiterLEO::ScheduleTraficJamArea(std::pair<Ptr<MobilityModel>, bool>& ptr){
-    ptr.second = true;
+std::string ArbiterLEO::StringReprOfForwardingState(){
+    return "ArbiterLEO forwarding state";
 }
 
 void ArbiterLEO::UpdateState(){
@@ -185,20 +187,9 @@ void ArbiterLEO::UpdateDetour(){
     NS_ABORT_MSG_IF(num_interfaces != 7, "num interfaces in LEO must as 7: " + std::to_string(num_interfaces));
 
     // check if the node is in trafic jam area
-    bool is_in_trafic_jam_area = false;
-    std::vector<TraficAreasList::iterator> in_trafic_jam_ptrs;
-    Ptr<MobilityModel> aMobility = node->GetObject<MobilityModel>();
-    TraficAreasList::iterator ptr = trafic_jam_areas.begin();
-    while(ptr != trafic_jam_areas.end()){
-        Ptr<MobilityModel> bMobility = ptr->first;
-        double distance = aMobility->GetDistanceFrom (bMobility);
-        if(distance < trafic_jam_area_radius_m){
-            is_in_trafic_jam_area = true;
-            in_trafic_jam_ptrs.push_back(ptr);
-        }
-        ++ptr;
-    }
+    bool is_in_trafic_jam_area = CheckIfInTraficJamArea();
 
+    // calculate total_now_bps and total_target_bps for detour state update
     // i begin at 1 to skip the loop-back interface
     uint64_t total_now_bps = 0;
     uint64_t total_target_bps = 0;
@@ -218,31 +209,19 @@ void ArbiterLEO::UpdateDetour(){
         }
     }
 
-    bool is_need_detour = false;
-
-    if(is_in_trafic_jam_area && total_now_bps < total_target_bps * trafic_judge_rate_jam_to_normal){
-        // jam area -> non-jam area
+    bool is_need_detour;
+    // update detour state
+    if(total_now_bps < total_target_bps * trafic_judge_rate_jam_to_normal){
+        // do not need detour anymore
         is_need_detour = false;
-
-        for(TraficAreasList::iterator ptr : in_trafic_jam_ptrs){
-            // must after trafic_jam_update_interval_ns
-            if(ptr->second){
-                trafic_jam_areas.erase(ptr);
-
-                // display the progres of trafic jam list
-                size_t areas_size = trafic_jam_areas.size();
-                if((areas_size % 5) == 0){
-                    std::cout << "The trafic jam list size(decrease): " << areas_size << std::endl;
-                }
-            }
-        }
     }
     else if(!is_in_trafic_jam_area && total_now_bps >= total_target_bps * trafic_judge_rate_non_jam){
         // non-jam area -> jam area
         is_need_detour = true;
 
-        trafic_jam_areas.push_back(std::make_pair(node->GetObject<MobilityModel>(), false));
-        Simulator::Schedule(NanoSeconds(trafic_jam_update_interval_ns), &ArbiterLEO::ScheduleTraficJamArea, this, trafic_jam_areas.back());
+        Ptr<MobilityModel> current_mobility = node->GetObject<MobilityModel>();
+        trafic_jam_areas.push_back(current_mobility);
+        trafic_areas_time[(uint64_t)PeekPointer<MobilityModel>(current_mobility)] = Simulator::Now();   // record start time
 
         // display the progres of trafic jam list(in case the list is too long)
         size_t areas_size = trafic_jam_areas.size();
@@ -255,7 +234,62 @@ void ArbiterLEO::UpdateDetour(){
         // detour in jam area
         is_need_detour = true;
     }
+    else{
+        // detour state do not change
+        is_need_detour = is_detour;
+    }
 
+
+    /**
+     * Note!!! 
+     * Because the logic of delete a jam area is very complex, I think it is necessary to restate the logic here: 
+     *  when a LEO satellite fly trafic_jam_update_interval_ns time over a jam area and has never experienced traffic detour, 
+     *  we consider that the area now is not jam, so we delete the jam area from trafic_jam_areas.
+    */
+    TraficAreasList::iterator ptr = trafic_jam_areas.begin();
+    while(ptr != trafic_jam_areas.end()){
+        uint64_t hash_key = (uint64_t)PeekPointer<MobilityModel>(*ptr);
+        bool is_has_been_record = trafic_areas_time.find(hash_key) != trafic_areas_time.end();
+        bool is_delete_area = false;
+
+        if(CheckIfInTheTraficJamArea(*ptr)){
+            if(is_has_been_record){
+                if(is_need_detour){
+                    // The current LEO satellite is in the jam area, and the start time has been recorded before, and it need detour.
+                    // we need to update the time.
+                    trafic_areas_time[hash_key] = Simulator::Now();
+                }
+                else{
+                    // The current LEO satellite is in the jam area, we determine whether the time of the current satellite 
+                    // from start time to now is greater than the threshold, if yes, delete the jam area.
+                    if(Simulator::Now() - trafic_areas_time.at(hash_key) >= NanoSeconds(trafic_jam_update_interval_ns)){
+                        // jam area -> normal erea. So complicated! :-)
+                        ptr = trafic_jam_areas.erase(ptr);
+                        is_delete_area = true;
+                    }
+                }
+            }
+            else{
+                // The current LEO satellite just entered the area.
+                // record the start time.
+                trafic_areas_time[hash_key] = Simulator::Now();
+            }
+        }
+        else{
+            if(is_has_been_record){
+                // The current LEO satellite once entered the jam area, and now it has left the area.
+                // just remove from trafic_areas_time.
+                trafic_areas_time.erase(hash_key);
+            }
+            else{
+                // The current LEO satellite has nothing to do with the area.
+                // do nothing.
+            }
+        }
+
+        if(!is_delete_area)
+            ++ptr;
+    }
     
 
     // update if the node need detour which attach to this arbiter

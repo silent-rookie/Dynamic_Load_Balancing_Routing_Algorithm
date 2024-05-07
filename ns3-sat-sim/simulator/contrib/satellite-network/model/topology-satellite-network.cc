@@ -49,6 +49,15 @@ namespace ns3 {
         m_satellite_network_force_static = parse_boolean(m_basicSimulation->GetConfigParamOrDefault("satellite_network_force_static", "false"));
 
         ReadDescription();
+
+        // Read some config key because basic-sim requires that all keys must be used
+        // just read but do nothing
+        std::string tmp = m_basicSimulation->GetConfigParamOrFail("receive_datarate_update_interval_ns");
+        tmp = m_basicSimulation->GetConfigParamOrFail("trafic_judge_rate_non_jam");
+        tmp = m_basicSimulation->GetConfigParamOrFail("trafic_judge_rate_in_jam");
+        tmp = m_basicSimulation->GetConfigParamOrFail("trafic_judge_rate_jam_to_normal");
+        tmp = m_basicSimulation->GetConfigParamOrFail("trafic_jam_area_radius_m");
+        tmp = m_basicSimulation->GetConfigParamOrFail("trafic_jam_update_interval_ns");
     }
 
     void TopologySatelliteNetwork::ReadDescription(){
@@ -131,9 +140,9 @@ namespace ns3 {
         m_isl_data_rate_megabit_per_s = parse_positive_double(m_basicSimulation->GetConfigParamOrFail("isl_data_rate_megabit_per_s"));
         m_gsl_data_rate_megabit_per_s = parse_positive_double(m_basicSimulation->GetConfigParamOrFail("gsl_data_rate_megabit_per_s"));
         m_ill_data_rate_megabit_per_s = parse_positive_double(m_basicSimulation->GetConfigParamOrFail("ill_data_rate_megabit_per_s"));
-        m_isl_max_queue_size_pkts = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("isl_max_queue_size_pkts"));
-        m_gsl_max_queue_size_pkts = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("gsl_max_queue_size_pkts"));
-        m_ill_max_queue_size_pkts = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("ill_max_queue_size_pkts"));
+        m_isl_max_queue_size_kB = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("isl_max_queue_size_kB"));
+        m_gsl_max_queue_size_kB = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("gsl_max_queue_size_kB"));
+        m_ill_max_queue_size_kB = parse_positive_int64(m_basicSimulation->GetConfigParamOrFail("ill_max_queue_size_kB"));
 
         // Utilization tracking settings
         m_enable_isl_utilization_tracking = parse_boolean(m_basicSimulation->GetConfigParamOrFail("enable_isl_utilization_tracking"));
@@ -368,11 +377,11 @@ namespace ns3 {
 
         // Link helper
         PointToPointLaserHelper p2p_laser_helper;
-        std::string max_queue_size_str = format_string("%" PRId64 "p", m_isl_max_queue_size_pkts);
+        std::string max_queue_size_str = format_string("%" PRId64 "kB", m_isl_max_queue_size_kB);
         p2p_laser_helper.SetQueue("ns3::DropTailQueue<Packet>", "MaxSize", QueueSizeValue(QueueSize(max_queue_size_str)));
         p2p_laser_helper.SetDeviceAttribute ("DataRate", DataRateValue (DataRate (std::to_string(m_isl_data_rate_megabit_per_s) + "Mbps")));
         std::cout << "    >> ISL data rate........ " << m_isl_data_rate_megabit_per_s << " Mbit/s" << std::endl;
-        std::cout << "    >> ISL max queue size... " << m_isl_max_queue_size_pkts << " packets" << std::endl;
+        std::cout << "    >> ISL max queue size... " << m_isl_max_queue_size_kB << " kB" << std::endl;
 
         // Traffic control helper
         TrafficControlHelper tch_isl;
@@ -439,11 +448,11 @@ namespace ns3 {
 
         // Link helper
         GSLHelper gsl_helper;
-        std::string max_queue_size_str = format_string("%" PRId64 "p", m_gsl_max_queue_size_pkts);
+        std::string max_queue_size_str = format_string("%" PRId64 "kB", m_gsl_max_queue_size_kB);
         gsl_helper.SetQueue("ns3::DropTailQueue<Packet>", "MaxSize", QueueSizeValue(QueueSize(max_queue_size_str)));
         gsl_helper.SetDeviceAttribute ("DataRate", DataRateValue (DataRate (std::to_string(m_gsl_data_rate_megabit_per_s) + "Mbps")));
         std::cout << "    >> GSL data rate........ " << m_gsl_data_rate_megabit_per_s << " Mbit/s" << std::endl;
-        std::cout << "    >> GSL max queue size... " << m_gsl_max_queue_size_pkts << " packets" << std::endl;
+        std::cout << "    >> GSL max queue size... " << m_gsl_max_queue_size_kB << " kB" << std::endl;
 
         // Traffic control helper
         TrafficControlHelper tch_gsl;
@@ -552,11 +561,11 @@ namespace ns3 {
 
         // Link helper
         ILLHelper ill_helper;
-        std::string max_queue_size_str = format_string("%" PRId64 "p", m_ill_max_queue_size_pkts);
+        std::string max_queue_size_str = format_string("%" PRId64 "kB", m_ill_max_queue_size_kB);
         ill_helper.SetQueue("ns3::DropTailQueue<Packet>", "MaxSize", QueueSizeValue(QueueSize(max_queue_size_str)));
         ill_helper.SetDeviceAttribute ("DataRate", DataRateValue (DataRate (std::to_string(m_ill_data_rate_megabit_per_s) + "Mbps")));
         std::cout << "    >> ILL data rate........ " << m_ill_data_rate_megabit_per_s << " Mbit/s" << std::endl;
-        std::cout << "    >> ILL max queue size... " << m_ill_max_queue_size_pkts << " packets" << std::endl;
+        std::cout << "    >> ILL max queue size... " << m_ill_max_queue_size_kB << " kB" << std::endl;
 
         // Traffic control helper
         TrafficControlHelper tch_ill;

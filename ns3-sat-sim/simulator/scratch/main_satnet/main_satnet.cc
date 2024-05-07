@@ -73,9 +73,9 @@ int main(int argc, char *argv[]) {
     TcpOptimizer::OptimizeBasic(basicSimulation);
 
     // Read algorighm
-    std::string algorithm = basicSimulation->GetConfigParamOrFail("algorighm");
+    std::string algorithm = basicSimulation->GetConfigParamOrFail("algorithm");
     NS_ABORT_MSG_IF(algorithm != "SingleForward" && algorithm != "DetourBasic" && algorithm != "DetourTrafficClassify",
-                        "invalid algorighm: " + algorithm);
+                        "invalid algorithm: " + algorithm);
     std::cout << std::endl;
     std::cout << "////////////////////////////////////////" << std::endl;
     std::cout << "/                                      /" << std::endl;
@@ -86,15 +86,17 @@ int main(int argc, char *argv[]) {
 
     // Read topology, and install routing arbiters
     Ptr<TopologySatelliteNetwork> topology = CreateObject<TopologySatelliteNetwork>(basicSimulation, Ipv4ArbiterRoutingHelper());
+    Ptr<ArbiterHelper> arbiter_helper;
     if(algorithm == "SingleForward"){
-        ArbiterSingleForwardHelper arbiterHelper(basicSimulation, topology->GetNodes());
+        arbiter_helper = CreateObject<ArbiterSingleForwardHelper>(basicSimulation, topology);
     }
     else if(algorithm == "DetourBasic"){
-        ArbiterLEOGSGEOHelper arbiterHelper(basicSimulation, topology);
+        arbiter_helper = CreateObject<ArbiterLEOGSGEOHelper>(basicSimulation, topology);
     }
     else if(algorithm == "DetourTrafficClassify"){
-        ArbiterTrafficClassifyHelper arbiterHelper(basicSimulation, topology);
+        arbiter_helper = CreateObject<ArbiterTrafficClassifyHelper>(basicSimulation, topology);
     }
+    arbiter_helper->Install();   // Install Arbiters for nodes
 
     // Schedule flows
     TcpFlowScheduler tcpFlowScheduler(basicSimulation, topology); // Requires enable_tcp_flow_scheduler=true

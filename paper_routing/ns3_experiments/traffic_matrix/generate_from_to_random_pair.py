@@ -6,7 +6,7 @@ import random
 # for example: 
 # NA to : NA, SA, Europe, Africa, Asia, Oceania
 # SA to : ...
-NorthAmerica_rate = [0.6, 0.1, 0.15, 0.02, 0.1, 0.3]
+NorthAmerica_rate = [0.6, 0.1, 0.15, 0.02, 0.1, 0.03]
 SouthAmerica_rate = [0.35, 0.4, 0.12, 0.02, 0.08, 0.03]
 Europe_rate = [0.4, 0.05, 0.4, 0.02, 0.1, 0.03]
 Africa_rate = [0.4, 0.02, 0.3, 0.2, 0.05, 0.03]
@@ -30,14 +30,18 @@ city_rate = [0.16, 0.1, 0.07, 0.1, 0.55, 0.02]
 
 
 
-def generate_from_to_random_pair_top100_city(pair_num, seed, num_satellites=1584):
+def generate_from_to_random_pair_top100_city(pair_num, random_num, seed, num_satellites=1584):
     '''
     pair_num:       the num of pair generate
+    random_num:     the num of random pair generate
     seed:           random seed
     num_satellites: num of satellites, for ground station offset
                     for convinent, now we set it as 1584
 
-    return:     generate list with 2 * pair_num pairs
+    According to paper, we generate pair_num pairs which consistent with "source to destinatino" rate,
+    and generate random_num pairs randomly
+
+    return:     generate list with (pair_num + random_num) pairs
     '''
 
     # Set random seed
@@ -49,7 +53,13 @@ def generate_from_to_random_pair_top100_city(pair_num, seed, num_satellites=1584
         pair_from = random.randint(0, 99)
         pair_to = generate_random_city_from_to(pair_from)
         pairs.append((pair_from + num_satellites, pair_to + num_satellites))
-        pairs.append((pair_to + num_satellites, pair_from + num_satellites))
+    
+    for i in range(random_num):
+        pair_from = random.randint(0, 99)
+        pair_to = pair_from
+        while(pair_to == pair_from):
+            pair_to = random.randint(0, 99)
+        pairs.append((pair_from + num_satellites, pair_to + num_satellites))
     
     return pairs
 
