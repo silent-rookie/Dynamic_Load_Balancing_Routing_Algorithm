@@ -154,10 +154,10 @@ bool ArbiterLEO::CheckIfInTraficJamArea(){
     return false;
 }
 
-bool ArbiterLEO::CheckIfInTheTraficJamArea(Ptr<MobilityModel> target){
+bool ArbiterLEO::CheckIfInTheTraficJamArea(std::shared_ptr<Vector> target){
     Ptr<Node> node = m_nodes.Get(m_node_id);
-    Ptr<MobilityModel> current_mobility = node->GetObject<MobilityModel>();
-    double distance = current_mobility->GetDistanceFrom (target);
+    Vector current_position = node->GetObject<MobilityModel>()->GetPosition();
+    double distance = CalculateDistance(current_position, *target);
     if(distance < trafic_jam_area_radius_m)
         return true;
     else
@@ -208,6 +208,8 @@ void ArbiterLEO::UpdateDetour(){
             NS_ABORT_MSG("Unidentified NetDevice");
         }
     }
+    // if(total_now_bps >= 500)
+    //     std::cout << ">>>  LEO " << m_node_id << ": " << total_now_bps << " " << total_target_bps << std::endl;
 
     bool is_need_detour;
     // update detour state
@@ -219,15 +221,14 @@ void ArbiterLEO::UpdateDetour(){
         // non-jam area -> jam area
         is_need_detour = true;
 
-        Ptr<MobilityModel> current_mobility = node->GetObject<MobilityModel>();
-        trafic_jam_areas.push_back(current_mobility);
-        trafic_areas_time[(uint64_t)PeekPointer<MobilityModel>(current_mobility)] = Simulator::Now();   // record start time
+        Vector current_position = node->GetObject<MobilityModel>()->GetPosition();
+        std::shared_ptr<Vector> ptr = std::make_shared<Vector>(current_position);
+        trafic_jam_areas.push_back(ptr);
+        trafic_areas_time[ptr] = std::unordered_map<int32_t, Time>();
 
         // display the progres of trafic jam list(in case the list is too long)
         size_t areas_size = trafic_jam_areas.size();
-        if((areas_size % 5) == 0){
-            std::cout << "The trafic jam list size(increase): " << areas_size << std::endl;
-        }
+        std::cout << "The trafic jam list size(increase): " << areas_size << std::endl;
         NS_ABORT_MSG_IF(areas_size > 30, "The trafic jam list size is bigger than 30(too big)");
     }
     else if(is_in_trafic_jam_area && total_now_bps >= total_target_bps * trafic_judge_rate_in_jam){
@@ -248,8 +249,7 @@ void ArbiterLEO::UpdateDetour(){
     */
     TraficAreasList::iterator ptr = trafic_jam_areas.begin();
     while(ptr != trafic_jam_areas.end()){
-        uint64_t hash_key = (uint64_t)PeekPointer<MobilityModel>(*ptr);
-        bool is_has_been_record = trafic_areas_time.find(hash_key) != trafic_areas_time.end();
+        bool is_has_been_record = trafic_areas_time.at(*ptr).find(m_node_id) != trafic_areas_time.at(*ptr).end();
         bool is_delete_area = false;
 
         if(CheckIfInTheTraficJamArea(*ptr)){
@@ -257,29 +257,33 @@ void ArbiterLEO::UpdateDetour(){
                 if(is_need_detour){
                     // The current LEO satellite is in the jam area, and the start time has been recorded before, and it need detour.
                     // we need to update the time.
-                    trafic_areas_time[hash_key] = Simulator::Now();
+                    trafic_areas_time.at(*ptr).at(m_node_id) = Simulator::Now();
                 }
                 else{
                     // The current LEO satellite is in the jam area, we determine whether the time of the current satellite 
-                    // from start time to now is greater than the threshold, if yes, delete the jam area.
-                    if(Simulator::Now() - trafic_areas_time.at(hash_key) >= NanoSeconds(trafic_jam_update_interval_ns)){
+                    // from start time to now is greater than trafic_jam_update_interval_ns, if yes, delete the jam area.
+                    if(Simulator::Now() - trafic_areas_time.at(*ptr).at(m_node_id) >= NanoSeconds(trafic_jam_update_interval_ns)){
                         // jam area -> normal erea. So complicated! :-)
                         ptr = trafic_jam_areas.erase(ptr);
                         is_delete_area = true;
+
+                        // display the progres of trafic jam list(in case the list is too long)
+                        size_t areas_size = trafic_jam_areas.size();
+                        std::cout << "The trafic jam list size(decrease): " << areas_size << std::endl;
                     }
                 }
             }
             else{
                 // The current LEO satellite just entered the area.
                 // record the start time.
-                trafic_areas_time[hash_key] = Simulator::Now();
+                trafic_areas_time.at(*ptr)[m_node_id] = Simulator::Now();
             }
         }
         else{
             if(is_has_been_record){
                 // The current LEO satellite once entered the jam area, and now it has left the area.
                 // just remove from trafic_areas_time.
-                trafic_areas_time.erase(hash_key);
+                trafic_areas_time.at(*ptr).erase(m_node_id);
             }
             else{
                 // The current LEO satellite has nothing to do with the area.

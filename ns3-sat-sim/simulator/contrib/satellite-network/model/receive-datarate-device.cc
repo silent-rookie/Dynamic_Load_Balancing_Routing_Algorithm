@@ -20,7 +20,8 @@ ReceiveDataRateDevice::ReceiveDataRateDevice(): receive_bytes(0) {
 void ReceiveDataRateDevice::UpdateReceiveDataRate(){
     // calculte bps
     NS_ABORT_MSG_IF(m_receive_datarate_update_interval_ns == 0, "receive_datarate_update_interval_ns == 0");
-    uint64_t now_bps = receive_bytes * 8 * 1000 * 1000 * 1000 / m_receive_datarate_update_interval_ns;
+    double seconds = (double)m_receive_datarate_update_interval_ns / 1000 / 1000 / 1000;
+    uint64_t now_bps = receive_bytes * 8 / seconds;
     receive_rate = DataRate(now_bps);
     receive_bytes = 0;
 }

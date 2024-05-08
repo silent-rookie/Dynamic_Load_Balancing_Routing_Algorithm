@@ -12,6 +12,7 @@
 #include "ns3/ipv4-header.h"
 #include "ns3/udp-header.h"
 #include "ns3/tcp-header.h"
+#include <memory>
 
 namespace ns3 {
 
@@ -50,17 +51,17 @@ public:
 
     bool CheckIfInTraficJamArea();
     bool CheckIfNeedDetour();
-    bool CheckIfInTheTraficJamArea(Ptr<MobilityModel> target);
+    bool CheckIfInTheTraficJamArea(std::shared_ptr<Vector> target);
 
     std::string StringReprOfForwardingState();
 
 private:
     // list of trafic jam area position
-    typedef std::list<Ptr<MobilityModel>> TraficAreasList;
+    typedef std::list<std::shared_ptr<Vector>> TraficAreasList;
 
     // record the time LEO satellite enter trafic jam area
-    // uint64_t: (uint64_t)PeekPointer(Ptr<MobilityModel>)
-    typedef std::unordered_map<uint64_t, Time> TraficAreasTime;
+    // for each jam area, record the start time of LEO satellite enter to the jam area  
+    typedef std::unordered_map<std::shared_ptr<Vector>, std::unordered_map<int32_t, Time>> TraficAreasTime;
 
     // update detour information each interval: receive_datarate_update_interval_ns
     void UpdateDetour();
