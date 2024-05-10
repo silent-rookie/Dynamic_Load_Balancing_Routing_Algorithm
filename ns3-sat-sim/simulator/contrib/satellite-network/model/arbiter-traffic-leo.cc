@@ -3,6 +3,7 @@
 */
 
 #include "arbiter-traffic-leo.h"
+#include "ns3/from-tag.h"
 
 
 
@@ -42,6 +43,19 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterTrafficLEO::TopologySatelliteNetwor
 
     FlowTosTag tag;
     bool found = pkt->PeekPacketTag(tag);
+    if(!found){
+        Icmpv4TimeExceeded icmp;
+        pkt->PeekHeader(icmp);
+        Ipv4Header header = icmp.GetHeader();
+        if(header.GetTtl() == 0){
+            // Icmp packet(see Ipv4L3Protocol::IpForward, line 1066, and Icmpv4L4Protocol::SendTimeExceededTtl)
+            // just forward to shortest LEO
+            return m_next_hop_lists[target_node_id][0];
+
+            // we can do more check: if(ResolveNodeIdFromIp(header.GetSource().Get()) == (uint32_t)target_node_id).
+            // but I think it is time-consuming, so I did not use it.
+        }
+    }
     NS_ABORT_MSG_IF(!found, "a packet has no FlowTosTag");
     TrafficClass pclass = Tos2TrafficClass(tag.GetTos());
 
