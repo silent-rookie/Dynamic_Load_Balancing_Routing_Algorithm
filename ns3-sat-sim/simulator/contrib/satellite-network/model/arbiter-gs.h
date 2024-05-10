@@ -31,7 +31,7 @@ public:
 
     static void InitializeArbiter(Ptr<BasicSimulation> basicSimulation, int64_t num_sat, int64_t num_gs, int64_t num_geo);
 
-    // LEOGEO forward next-hop implementation
+    // GS forward next-hop implementation
     std::tuple<int32_t, int32_t, int32_t> TopologySatelliteNetworkDecide(
             int32_t source_node_id,
             int32_t target_node_id,

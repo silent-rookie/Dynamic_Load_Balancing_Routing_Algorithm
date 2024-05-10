@@ -46,6 +46,8 @@ public:
     void SetLEOForwardState(int32_t target_node_id, std::vector<std::tuple<int32_t, int32_t, int32_t>> next_hop_list);
     void SetLEONextGEOID(int32_t next_GEO_node_id);
 
+    void AddFromTagForGEO(Ptr<const ns3::Packet> pkt);
+
     std::vector<std::tuple<int32_t, int32_t, int32_t>> GetLEOForwardState(int32_t target_node_id);
     int32_t GetLEONextGEOID();
 

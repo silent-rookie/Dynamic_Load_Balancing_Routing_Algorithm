@@ -4,6 +4,7 @@
 
 #include "arbiter-leo.h"
 #include "ns3/arbiter-leo-gs-geo-helper.h"
+#include "ns3/from-tag.h"
 
 
 
@@ -107,8 +108,7 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterLEO::TopologySatelliteNetworkDecide
     // we can only forward the packet to GEOsatellite
 
     // make the GEOsatellite know the pkt is forward from current node
-    int32_t target_geo_index = m_next_GEO_node_id - num_satellites - num_groundstations;
-    m_arbiter_helper->GetArbiterGEO(target_geo_index)->PushGEONextHop(pkt, m_node_id);
+    AddFromTagForGEO(pkt);
 
     // interface for device in satellite:
     // 0: loop-back interface
@@ -127,6 +127,12 @@ void ArbiterLEO::SetLEOForwardState(int32_t target_node_id, std::vector<std::tup
 
 void ArbiterLEO::SetLEONextGEOID(int32_t next_GEO_node_id){
     m_next_GEO_node_id = next_GEO_node_id;
+}
+
+void ArbiterLEO::AddFromTagForGEO(Ptr<const ns3::Packet> pkt){
+    FromTag tag;
+    tag.SetFrom(m_node_id);
+    pkt->AddPacketTag(tag);
 }
 
 std::vector<std::tuple<int32_t, int32_t, int32_t>> 
@@ -208,8 +214,6 @@ void ArbiterLEO::UpdateDetour(){
             NS_ABORT_MSG("Unidentified NetDevice");
         }
     }
-    // if(total_now_bps >= 500)
-    //     std::cout << ">>>  LEO " << m_node_id << ": " << total_now_bps << " " << total_target_bps << std::endl;
 
     bool is_need_detour;
     // update detour state

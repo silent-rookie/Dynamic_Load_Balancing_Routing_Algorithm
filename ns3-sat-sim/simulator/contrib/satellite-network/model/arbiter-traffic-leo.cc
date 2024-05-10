@@ -40,9 +40,10 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterTrafficLEO::TopologySatelliteNetwor
     NS_ABORT_MSG_UNLESS(m_node_id < num_satellites, "arbiter_leo in: " + std::to_string(m_node_id));
     NS_ABORT_MSG_IF(target_node_id == m_node_id, "target_id == current_id, id: " + std::to_string(m_node_id));
 
-    IdSeqTsTosHeader pheader;
-    pkt->PeekHeader(pheader);
-    TrafficClass pclass = Tos2TrafficClass(pheader.GetTos());
+    FlowTosTag tag;
+    bool found = pkt->PeekPacketTag(tag);
+    NS_ABORT_MSG_IF(!found, "a packet has no FlowTosTag");
+    TrafficClass pclass = Tos2TrafficClass(tag.GetTos());
 
     // the packet not implement traffic class
     // we just hand over to ArbiterLEO
@@ -65,11 +66,13 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterTrafficLEO::TopologySatelliteNetwor
         // detour to LEO satellite which has the shortest distance
         return m_next_hop_lists[target_node_id][1];
     }
-    else{
+    else if(pclass == TrafficClass::class_C){
         // detour to GEO satellite
-        int32_t target_geo_id = m_next_GEO_node_id - num_satellites - num_groundstations;
-        m_arbiter_helper->GetArbiterGEO(target_geo_id)->PushGEONextHop(pkt, m_node_id);
+        AddFromTagForGEO(pkt);
         return std::make_tuple(m_next_GEO_node_id, 6, 1);
+    }
+    else{
+        NS_ABORT_MSG("TrafficClass error");
     }
 }
 

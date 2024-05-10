@@ -14,6 +14,7 @@
 #include "ns3/arbiter-leo.h"
 #include "ns3/arbiter-leo-gs-geo-helper.h"
 #include "ns3/id-seq-ts-tos-header.h"
+#include "ns3/flow-tos-tag.h"
 
 namespace ns3{
 

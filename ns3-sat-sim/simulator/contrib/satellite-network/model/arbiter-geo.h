@@ -36,15 +36,7 @@ public:
     );
 
     // find the next leo to for GEOsatellite
-    std::tuple<int32_t, int32_t, int32_t> FindNextHopForGEO(int32_t from, int32_t target_node_id);
-
-    /**
-     * \brief push the next hop information
-     * \param pkt the forward packet
-     * \param from the packet forward from
-     * \param to the packet send to
-    */
-    void PushGEONextHop(ns3::Ptr<const ns3::Packet> pkt, int32_t from);
+    std::tuple<int32_t, int32_t, int32_t> FindNextHopForGEO(uint64_t from, int32_t target_node_id);
 
     std::string StringReprOfForwardingState();
 
@@ -53,7 +45,6 @@ private:
     void UpdateReceiveDatarate();
 
     Ptr<ArbiterLEOGSGEOHelper> m_arbiter_helper;
-    std::unordered_map<uint64_t , int32_t> m_geo_pkt_next_hop_map;
 
     static int64_t receive_datarate_update_interval_ns;     // the interval that a netdevice receive datarate update
     static double ill_data_rate_megabit_per_s;

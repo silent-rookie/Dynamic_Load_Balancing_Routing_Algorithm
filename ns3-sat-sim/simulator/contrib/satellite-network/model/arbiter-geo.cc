@@ -4,6 +4,7 @@
 
 #include "arbiter-geo.h"
 #include "ns3/arbiter-leo-gs-geo-helper.h"
+#include "ns3/from-tag.h"
 
 
 
@@ -61,29 +62,43 @@ ArbiterGEO::TopologySatelliteNetworkDecide(
             ns3::Ipv4Header const &ipHeader,
             bool is_socket_request_for_source_ip
 ){
-    NS_ABORT_MSG_UNLESS(m_node_id >= num_satellites + num_groundstations, "arbiter_gs in: " + std::to_string(m_node_id));
+    NS_ABORT_MSG_UNLESS(m_node_id >= num_satellites + num_groundstations, "arbiter_geo in: " + std::to_string(m_node_id));
     NS_ABORT_MSG_IF(target_node_id == m_node_id, "target_id == current_id, id: " + std::to_string(m_node_id));
 
-    uint64_t hash_value = (uint64_t)PeekPointer<const ns3::Packet>(pkt);
-    NS_ABORT_MSG_IF(m_geo_pkt_next_hop_map.find(hash_value) == m_geo_pkt_next_hop_map.end(), "the packet have never been push to map");
+    FromTag tag;
+    bool found = pkt->PeekPacketTag(tag);
+    NS_ABORT_MSG_IF(!found, "a packet be forward to GEO can not find From LEO");
 
-    int32_t from = m_geo_pkt_next_hop_map[hash_value];
-    return FindNextHopForGEO(from, target_node_id);
+    return FindNextHopForGEO(tag.GetFrom(), target_node_id);
 }
 
 std::tuple<int32_t, int32_t, int32_t> 
-ArbiterGEO::FindNextHopForGEO(int32_t from, int32_t target_node_id){
+ArbiterGEO::FindNextHopForGEO(uint64_t from, int32_t target_node_id){
     int32_t ptr = std::get<0>(m_arbiter_helper->GetArbiterLEO(from)->GetLEOForwardState(target_node_id)[0]);
-    NS_ABORT_MSG_IF(target_node_id == ptr, "LEO forward packet to GEO instead of ground station");
+    if(target_node_id == ptr){
+        // may be the from LEO satellite move and the target_node_id GS can see it.
+        return std::make_tuple(from, 1, 6);
+    }
 
     int32_t last_ptr = ptr;
     // recursive search the node which not in trafic jam area
     while(ptr != target_node_id && m_arbiter_helper->GetArbiterLEO(ptr)->CheckIfNeedDetour()){
         // make sure the next node is in ill distance
         if(m_arbiter_helper->GetArbiterLEO(ptr)->GetLEONextGEOID() != m_node_id){
-            // next hop of GEOsatellite is out of ill.
-            // this situation is special, for now we just abort.
-            NS_ABORT_MSG("next hop of GEOsatellite is out of ill");
+            if(last_ptr == ptr){
+                // the first next hop of GEOsatellite is out of ill. this situation 
+                // is special, for now we just forward to this next hop. 
+                // NOTE!!! But you need to know that it is illegal.
+
+
+                // NS_ABORT_MSG("next hop of GEOsatellite is out of ill");
+                return std::make_tuple(ptr, 1, 6);
+            }
+            else{
+                // the next hop of GEOsatellite is out of ill.
+                // we forward to the last LEO.
+                return std::make_tuple(last_ptr, 1, 6);
+            }
         }
 
         last_ptr = ptr;
@@ -107,17 +122,6 @@ ArbiterGEO::FindNextHopForGEO(int32_t from, int32_t target_node_id){
     else{
         return std::make_tuple(ptr, 1, 6);
     }
-}
-
-void
-ArbiterGEO::PushGEONextHop(ns3::Ptr<const ns3::Packet> pkt, int32_t from)
-{
-    // peek the ptr and transform to uint64
-    uint64_t hash_value = (uint64_t)PeekPointer<const ns3::Packet>(pkt);
-    bool condition = m_geo_pkt_next_hop_map.find(hash_value) != m_geo_pkt_next_hop_map.end();
-    NS_ABORT_MSG_IF(condition, "find 2 packet have same ptr address");
-
-    m_geo_pkt_next_hop_map.emplace(hash_value, from);
 }
 
 std::string ArbiterGEO::StringReprOfForwardingState(){
