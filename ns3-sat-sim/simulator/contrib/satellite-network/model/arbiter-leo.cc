@@ -157,7 +157,7 @@ ArbiterLEO::ForwardToGEO(int32_t target_node_id, ns3::Ptr<const ns3::Packet> pkt
     }
 
     // forward to GEO
-    AddFromTagForGEO(pkt);
+    AddFromTag(pkt);
 
     // interface for device in satellite:
     // 0: loop-back interface
@@ -170,7 +170,7 @@ ArbiterLEO::ForwardToGEO(int32_t target_node_id, ns3::Ptr<const ns3::Packet> pkt
     return std::make_tuple(m_next_GEO_node_id, 6, 1);
 }
 
-void ArbiterLEO::AddFromTagForGEO(Ptr<const ns3::Packet> pkt){
+void ArbiterLEO::AddFromTag(Ptr<const ns3::Packet> pkt){
     FromTag tag;
     tag.SetFrom(m_node_id);
     pkt->AddPacketTag(tag);

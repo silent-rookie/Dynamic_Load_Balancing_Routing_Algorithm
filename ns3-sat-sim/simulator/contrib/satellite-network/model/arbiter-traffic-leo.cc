@@ -83,11 +83,28 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterTrafficLEO::TopologySatelliteNetwor
         // detour to nearby LEO satellites which do not need detour.
         // skip shortest LEO satellite.
 
-        std::tuple<int32_t, int32_t, int32_t> res = m_next_hop_lists[target_node_id][1];
+        // Note: For B class flow, we add from tag  to avoid network loopback
+        FromTag from_tag;
+        pkt->PeekPacketTag(from_tag);
+        int32_t from = from_tag.GetFrom();
+
+        AddFromTag(pkt);
+
+        std::tuple<int32_t, int32_t, int32_t> res;
+        // find a default res which is not the from node
+        for(size_t i = 1; i < m_next_hop_lists[target_node_id].size(); ++i){
+            next_node_id = std::get<0>(m_next_hop_lists[target_node_id][i]);
+            if(next_node_id != from){
+                res = m_next_hop_lists[target_node_id][i];
+                break;
+            }
+        }
+        // find a next node which is not need detour
         for(size_t i = 1; i < m_next_hop_lists[target_node_id].size(); ++i){
             next_node_id = std::get<0>(m_next_hop_lists[target_node_id][i]);
             next_interface_id = std::get<2>(m_next_hop_lists[target_node_id][i]);
-            if(!m_arbiter_helper->GetArbiterLEO(next_node_id)->CheckIfNeedDetour(next_interface_id)){
+            // The next_node do not need detour. And the packet is not from next_node(to avoid network loopback)
+            if(!m_arbiter_helper->GetArbiterLEO(next_node_id)->CheckIfNeedDetour(next_interface_id) && from != next_node_id){
                 res = m_next_hop_lists[target_node_id][i];
                 break;
             }

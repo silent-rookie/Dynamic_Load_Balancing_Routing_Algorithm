@@ -56,7 +56,7 @@ public:
 
 protected:
     std::tuple<int32_t, int32_t, int32_t> ForwardToGEO(int32_t target_node_id, ns3::Ptr<const ns3::Packet> pkt);
-    void AddFromTagForGEO(Ptr<const ns3::Packet> pkt);
+    void AddFromTag(Ptr<const ns3::Packet> pkt);
 
     bool CalculateIfInTraficJamArea();
     bool CalculateIfInTheTraficJamArea(std::shared_ptr<Vector> target);
