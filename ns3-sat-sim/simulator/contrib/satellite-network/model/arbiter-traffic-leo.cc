@@ -66,9 +66,12 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterTrafficLEO::TopologySatelliteNetwor
     }
 
     // the next node do not need detour
-    int32_t next_first = std::get<0>(m_next_hop_lists[target_node_id][0]);
-    if(next_first == target_node_id || !m_arbiter_helper->GetArbiterLEO(next_first)->CheckIfNeedDetour()){
-        return m_next_hop_lists[target_node_id][0]; 
+    // or
+    // the next node is ground station
+    int32_t next_node_id = std::get<0>(m_next_hop_lists[target_node_id][0]);
+    int32_t next_interface_id = std::get<2>(m_next_hop_lists[target_node_id][0]);
+    if(next_node_id == target_node_id || !m_arbiter_helper->GetArbiterLEO(next_node_id)->CheckIfNeedDetour(next_interface_id)){
+        return m_next_hop_lists[target_node_id][0];
     }
 
     // the next node need detour
@@ -77,13 +80,23 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterTrafficLEO::TopologySatelliteNetwor
         return m_next_hop_lists[target_node_id][0];
     }
     else if(pclass == TrafficClass::class_B){
-        // detour to LEO satellite which has the shortest distance
-        return m_next_hop_lists[target_node_id][1];
+        // detour to nearby LEO satellites which do not need detour.
+        // skip shortest LEO satellite.
+
+        std::tuple<int32_t, int32_t, int32_t> res = m_next_hop_lists[target_node_id][1];
+        for(size_t i = 1; i < m_next_hop_lists[target_node_id].size(); ++i){
+            next_node_id = std::get<0>(m_next_hop_lists[target_node_id][i]);
+            next_interface_id = std::get<2>(m_next_hop_lists[target_node_id][i]);
+            if(!m_arbiter_helper->GetArbiterLEO(next_node_id)->CheckIfNeedDetour(next_interface_id)){
+                res = m_next_hop_lists[target_node_id][i];
+                break;
+            }
+        }
+        return res;
     }
     else if(pclass == TrafficClass::class_C){
         // detour to GEO satellite
-        AddFromTagForGEO(pkt);
-        return std::make_tuple(m_next_GEO_node_id, 6, 1);
+        return ForwardToGEO(target_node_id, pkt);
     }
     else{
         NS_ABORT_MSG("TrafficClass error");

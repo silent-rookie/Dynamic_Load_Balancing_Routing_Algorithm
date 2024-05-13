@@ -46,16 +46,20 @@ public:
     void SetLEOForwardState(int32_t target_node_id, std::vector<std::tuple<int32_t, int32_t, int32_t>> next_hop_list);
     void SetLEONextGEOID(int32_t next_GEO_node_id);
 
-    void AddFromTagForGEO(Ptr<const ns3::Packet> pkt);
-
     std::vector<std::tuple<int32_t, int32_t, int32_t>> GetLEOForwardState(int32_t target_node_id);
     int32_t GetLEONextGEOID();
 
     bool CheckIfInTraficJamArea();
-    bool CheckIfNeedDetour();
-    bool CheckIfInTheTraficJamArea(std::shared_ptr<Vector> target);
+    bool CheckIfNeedDetour(int32_t interface);
 
     std::string StringReprOfForwardingState();
+
+protected:
+    std::tuple<int32_t, int32_t, int32_t> ForwardToGEO(int32_t target_node_id, ns3::Ptr<const ns3::Packet> pkt);
+    void AddFromTagForGEO(Ptr<const ns3::Packet> pkt);
+
+    bool CalculateIfInTraficJamArea();
+    bool CalculateIfInTheTraficJamArea(std::shared_ptr<Vector> target);
 
 private:
     // list of trafic jam area position
@@ -72,7 +76,8 @@ private:
 
 protected:
     // if the node which attach to this arbiter is detour
-    bool is_detour;
+    bool is_in_jam_area;
+    std::vector<bool> interfaces_need_detour;
     int32_t m_next_GEO_node_id;
     Ptr<ArbiterLEOGSGEOHelper> m_arbiter_helper;
     std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>> m_next_hop_lists;

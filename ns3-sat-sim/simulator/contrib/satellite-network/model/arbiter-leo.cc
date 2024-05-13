@@ -45,10 +45,35 @@ ArbiterLEO::ArbiterLEO(
         Ptr<ArbiterLEOGSGEOHelper> arbiter_helper
 ) : ArbiterSatnet(this_node, nodes)
 {
-    is_detour = false;
+    is_in_jam_area = false;
     m_next_GEO_node_id = next_GEO_node_id;
     m_next_hop_lists = next_hop_lists;
     m_arbiter_helper = arbiter_helper;
+
+    // interface for device in LEO satellite:
+    // 0: loop-back interface
+    // 1 ~ 4: isl interface
+    // 5: gsl interface
+    // 6: ill interface
+    Ptr<Node> node = m_nodes.Get(m_node_id);
+    uint32_t num_interfaces = node->GetObject<Ipv4>()->GetNInterfaces();
+    NS_ABORT_MSG_IF(num_interfaces != 7, "num interfaces in LEO must as 7: " + std::to_string(num_interfaces));
+
+    // initialize each interface detour information.
+    interfaces_need_detour.push_back(false);    // loop-back interface
+    for(uint32_t i = 1; i < num_interfaces; ++i){
+        if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>() != 0){
+            // ILL NetDevice(in our implement, ILL NetDevice is GSL NetDevice) do not attend detour calculation
+        }
+        else if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>() != 0){
+            // ISL NetDevice
+            interfaces_need_detour.push_back(false);
+        }
+        else{
+            NS_ABORT_MSG("Unidentified NetDevice in LEO");
+        }
+    }
+    interfaces_need_detour.push_back(false);    // GSL interface
 
     // Initialize must before
     NS_ABORT_MSG_IF(receive_datarate_update_interval_ns == 0, "Initialize must before");
@@ -82,21 +107,24 @@ void ArbiterLEO::InitializeArbiter(Ptr<BasicSimulation> basicSimulation, int64_t
     std::cout << std::endl;
 }
 
-std::tuple<int32_t, int32_t, int32_t> ArbiterLEO::TopologySatelliteNetworkDecide(
+std::tuple<int32_t, int32_t, int32_t> 
+ArbiterLEO::TopologySatelliteNetworkDecide(
         int32_t source_node_id,
         int32_t target_node_id,
         Ptr<const Packet> pkt,
         Ipv4Header const &ipHeader,
         bool is_request_for_source_ip_so_no_next_header
-) {
+) 
+{
     NS_ABORT_MSG_UNLESS(m_node_id < num_satellites, "arbiter_leo in: " + std::to_string(m_node_id));
     NS_ABORT_MSG_IF(target_node_id == m_node_id, "target_id == current_id, id: " + std::to_string(m_node_id));
 
     // Note! we assume that LEO have 3 candidate
     for(size_t i = 0; i < m_next_hop_lists[target_node_id].size(); ++i){
-        int32_t target_index = std::get<0>(m_next_hop_lists[target_node_id][i]);
-        if( target_index == target_node_id || 
-            !m_arbiter_helper->GetArbiterLEO(target_index)->CheckIfNeedDetour()){
+        int32_t next_node_id = std::get<0>(m_next_hop_lists[target_node_id][i]);
+        int32_t next_interface_index = std::get<2>(m_next_hop_lists[target_node_id][i]);
+        if( next_node_id == target_node_id || 
+            !m_arbiter_helper->GetArbiterLEO(next_node_id)->CheckIfNeedDetour(next_interface_index)){
             // find a neighbor ground station
             // or
             // find a neighbor leo satellite which can be forward
@@ -106,8 +134,29 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterLEO::TopologySatelliteNetworkDecide
 
     // 3 neighbor leo satellites are in detour,
     // we can only forward the packet to GEOsatellite
+    return ForwardToGEO(target_node_id, pkt);
+}
 
-    // make the GEOsatellite know the pkt is forward from current node
+void ArbiterLEO::SetLEOForwardState(int32_t target_node_id, std::vector<std::tuple<int32_t, int32_t, int32_t>> next_hop_list){
+    m_next_hop_lists[target_node_id] = next_hop_list;
+}
+
+void ArbiterLEO::SetLEONextGEOID(int32_t next_GEO_node_id){
+    m_next_GEO_node_id = next_GEO_node_id;
+}
+
+std::tuple<int32_t, int32_t, int32_t> 
+ArbiterLEO::ForwardToGEO(int32_t target_node_id, ns3::Ptr<const ns3::Packet> pkt)
+{
+    // make sure the GEO of next hop LEO is same to current LEO.
+    // if not, we can only forward in LEO layer.
+    int32_t next_node_id = std::get<0>(m_next_hop_lists[target_node_id][0]);
+    if(m_arbiter_helper->GetArbiterLEO(next_node_id)->GetLEONextGEOID() != m_next_GEO_node_id){
+        // forward to the second shortest LEO satellite
+        return m_next_hop_lists[target_node_id][1];
+    }
+
+    // forward to GEO
     AddFromTagForGEO(pkt);
 
     // interface for device in satellite:
@@ -119,14 +168,6 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterLEO::TopologySatelliteNetworkDecide
     // 0: loop-back interface
     // 1: ill interface
     return std::make_tuple(m_next_GEO_node_id, 6, 1);
-}
-
-void ArbiterLEO::SetLEOForwardState(int32_t target_node_id, std::vector<std::tuple<int32_t, int32_t, int32_t>> next_hop_list){
-    m_next_hop_lists[target_node_id] = next_hop_list;
-}
-
-void ArbiterLEO::SetLEONextGEOID(int32_t next_GEO_node_id){
-    m_next_GEO_node_id = next_GEO_node_id;
 }
 
 void ArbiterLEO::AddFromTagForGEO(Ptr<const ns3::Packet> pkt){
@@ -144,15 +185,22 @@ int32_t ArbiterLEO::GetLEONextGEOID(){
     return m_next_GEO_node_id;
 }
 
-bool ArbiterLEO::CheckIfNeedDetour(){
-    return is_detour;
+bool ArbiterLEO::CheckIfInTraficJamArea(){
+    return is_in_jam_area;
 }
 
-bool ArbiterLEO::CheckIfInTraficJamArea(){
+bool ArbiterLEO::CheckIfNeedDetour(int32_t interface){
+    // only detour in ISL NetDevice and GSL NetDevice
+    NS_ABORT_MSG_UNLESS(interface >= 1 && interface <= 5, 
+                "interface: " + std::to_string(interface) + " in LEO: " + std::to_string(m_node_id));
+    return interfaces_need_detour[interface];
+}
+
+bool ArbiterLEO::CalculateIfInTraficJamArea(){
     // check if the node is in trafic jam area
     TraficAreasList::iterator ptr = trafic_jam_areas.begin();
     while(ptr != trafic_jam_areas.end()){
-        if(CheckIfInTheTraficJamArea(*ptr))
+        if(CalculateIfInTheTraficJamArea(*ptr))
             return true;
         ++ptr;
     }
@@ -160,7 +208,7 @@ bool ArbiterLEO::CheckIfInTraficJamArea(){
     return false;
 }
 
-bool ArbiterLEO::CheckIfInTheTraficJamArea(std::shared_ptr<Vector> target){
+bool ArbiterLEO::CalculateIfInTheTraficJamArea(std::shared_ptr<Vector> target){
     Ptr<Node> node = m_nodes.Get(m_node_id);
     Vector current_position = node->GetObject<MobilityModel>()->GetPosition();
     double distance = CalculateDistance(current_position, *target);
@@ -193,55 +241,66 @@ void ArbiterLEO::UpdateDetour(){
     NS_ABORT_MSG_IF(num_interfaces != 7, "num interfaces in LEO must as 7: " + std::to_string(num_interfaces));
 
     // check if the node is in trafic jam area
-    bool is_in_trafic_jam_area = CheckIfInTraficJamArea();
+    is_in_jam_area = CalculateIfInTraficJamArea();
 
-    // calculate total_now_bps and total_target_bps for detour state update
+    // update detour update
+    int num_interface_detour = 0;
     // i begin at 1 to skip the loop-back interface
-    uint64_t total_now_bps = 0;
-    uint64_t total_target_bps = 0;
-    for(uint32_t i = 1; i < num_interfaces; ++i){
+    for(uint32_t i = 1; i < interfaces_need_detour.size(); ++i){
         if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>() != 0){
             // GSL(ILL) NetDevice
-            // NOTE: GSL(ILL) do not calculate in trafic jam
+            // NOTE: GSL(ILL) do not attend detour calculation, but we
+            // also update detour state because ground station need GSL detour state.
+            Ptr<GSLNetDevice> gsl = node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<GSLNetDevice>();
+            uint64_t now_bps = gsl->GetReceiveDataRate().GetBitRate();
+            uint64_t max_bps = DataRate(std::to_string(gsl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
+            interfaces_need_detour[i] = (now_bps >= max_bps * trafic_judge_rate_non_jam);
         }
         else if(node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>() != 0){
             // ISL NetDevice
             Ptr<PointToPointLaserNetDevice> isl = node->GetObject<Ipv4>()->GetNetDevice(i)->GetObject<PointToPointLaserNetDevice>();
-            total_now_bps += isl->GetReceiveDataRate().GetBitRate();
-            total_target_bps += DataRate(std::to_string(isl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
+            uint64_t now_bps = isl->GetReceiveDataRate().GetBitRate();
+            uint64_t max_bps = DataRate(std::to_string(isl_data_rate_megabit_per_s) + "Mbps").GetBitRate();
+
+            // update detour state
+            if(now_bps < max_bps * trafic_judge_rate_jam_to_normal){
+                // do not need detour anymore
+                interfaces_need_detour[i] = false;
+            }
+            else if(!is_in_jam_area && now_bps >= max_bps * trafic_judge_rate_non_jam){
+                // detour in non-jam area
+                interfaces_need_detour[i] = true;
+                ++num_interface_detour;
+            }
+            else if(is_in_jam_area && now_bps >= max_bps * trafic_judge_rate_in_jam){
+                // detour in jam area
+                interfaces_need_detour[i] = true;
+                ++num_interface_detour;
+            }
+            else{
+                // detour state do not change
+            }
         }
         else{
             NS_ABORT_MSG("Unidentified NetDevice");
         }
     }
 
-    bool is_need_detour;
-    // update detour state
-    if(total_now_bps < total_target_bps * trafic_judge_rate_jam_to_normal){
-        // do not need detour anymore
-        is_need_detour = false;
-    }
-    else if(!is_in_trafic_jam_area && total_now_bps >= total_target_bps * trafic_judge_rate_non_jam){
-        // non-jam area -> jam area
-        is_need_detour = true;
+    // We set a non-jam area change to jam area only
+    // at least 2 ISL interface are need detour.
+    // This is for stability reason. 
+    if(!is_in_jam_area && num_interface_detour >= 2){
+        is_in_jam_area = true;
 
         Vector current_position = node->GetObject<MobilityModel>()->GetPosition();
         std::shared_ptr<Vector> ptr = std::make_shared<Vector>(current_position);
         trafic_jam_areas.push_back(ptr);
         trafic_areas_time[ptr] = std::unordered_map<int32_t, Time>();
 
-        // display the progres of trafic jam list(in case the list is too long)
+        // display the progres of trafic jam list
         size_t areas_size = trafic_jam_areas.size();
         std::cout << "The trafic jam list size(increase): " << areas_size << std::endl;
-        NS_ABORT_MSG_IF(areas_size > 30, "The trafic jam list size is bigger than 30(too big)");
-    }
-    else if(is_in_trafic_jam_area && total_now_bps >= total_target_bps * trafic_judge_rate_in_jam){
-        // detour in jam area
-        is_need_detour = true;
-    }
-    else{
-        // detour state do not change
-        is_need_detour = is_detour;
+        // NS_ABORT_MSG_IF(areas_size > 30, "The trafic jam list size is bigger than 30(too big)");
     }
 
 
@@ -256,9 +315,9 @@ void ArbiterLEO::UpdateDetour(){
         bool is_has_been_record = trafic_areas_time.at(*ptr).find(m_node_id) != trafic_areas_time.at(*ptr).end();
         bool is_delete_area = false;
 
-        if(CheckIfInTheTraficJamArea(*ptr)){
+        if(CalculateIfInTheTraficJamArea(*ptr)){
             if(is_has_been_record){
-                if(is_need_detour){
+                if(num_interface_detour > 0){
                     // The current LEO satellite is in the jam area, and the start time has been recorded before, and it need detour.
                     // we need to update the time.
                     trafic_areas_time.at(*ptr).at(m_node_id) = Simulator::Now();
@@ -269,6 +328,7 @@ void ArbiterLEO::UpdateDetour(){
                     if(Simulator::Now() - trafic_areas_time.at(*ptr).at(m_node_id) >= NanoSeconds(trafic_jam_update_interval_ns)){
                         // jam area -> normal erea. So complicated! :-)
                         ptr = trafic_jam_areas.erase(ptr);
+                        is_in_jam_area = false;
                         is_delete_area = true;
 
                         // display the progres of trafic jam list(in case the list is too long)
@@ -298,14 +358,11 @@ void ArbiterLEO::UpdateDetour(){
         if(!is_delete_area)
             ++ptr;
     }
-    
 
-    // update if the node need detour which attach to this arbiter
-    is_detour = is_need_detour;
 }
 
 void ArbiterLEO::UpdateReceiveDatarate(){
-    // interface for device in satellite:
+    // interface for device in LEO satellite:
     // 0: loop-back interface
     // 1 ~ 4: isl interface
     // 5: gsl interface

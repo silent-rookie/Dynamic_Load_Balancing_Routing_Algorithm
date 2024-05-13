@@ -67,6 +67,19 @@ ArbiterGEO::TopologySatelliteNetworkDecide(
 
     FromTag tag;
     bool found = pkt->PeekPacketTag(tag);
+    if(!found){
+        Icmpv4TimeExceeded icmp;
+        pkt->PeekHeader(icmp);
+        Ipv4Header header = icmp.GetHeader();
+        if(header.GetTtl() == 0){
+            // Icmp packet(see Ipv4L3Protocol::IpForward, line 1066, and Icmpv4L4Protocol::SendTimeExceededTtl).
+            // we do not know the from LEO, so we can do nothing.
+            return std::make_tuple(-1, -1, -1);
+
+            // we can do more check: if(ResolveNodeIdFromIp(header.GetSource().Get()) == (uint32_t)target_node_id).
+            // but I think it is time-consuming, so I did not use it.
+        }
+    }
     NS_ABORT_MSG_IF(!found, "a packet be forward to GEO can not find From LEO");
 
     return FindNextHopForGEO(tag.GetFrom(), target_node_id);
@@ -82,14 +95,16 @@ ArbiterGEO::FindNextHopForGEO(uint64_t from, int32_t target_node_id){
 
     int32_t last_ptr = ptr;
     // recursive search the node which not in trafic jam area
-    while(ptr != target_node_id && m_arbiter_helper->GetArbiterLEO(ptr)->CheckIfNeedDetour()){
+    while(ptr != target_node_id && !m_arbiter_helper->GetArbiterLEO(ptr)->CheckIfInTraficJamArea()){
         // make sure the next node is in ill distance
-        if(m_arbiter_helper->GetArbiterLEO(ptr)->GetLEONextGEOID() != m_node_id){
+        int32_t next_GEO_id = m_arbiter_helper->GetArbiterLEO(ptr)->GetLEONextGEOID();
+        if(next_GEO_id != m_node_id){
             if(last_ptr == ptr){
                 // the first next hop of GEOsatellite is out of ill. this situation 
-                // is special, for now we just forward to this next hop. 
-                // NOTE!!! But you need to know that it is illegal.
-
+                // is special, because we already made a check in ArbiterLEO::ForwardToGEO.
+                // The only reason I can think of is because we update ill state in that time.
+                // For now we just forward to the first next hop, 
+                // BUT YOU NEED TO KNOW THAT IT IS ILLEGAL.
 
                 // NS_ABORT_MSG("next hop of GEOsatellite is out of ill");
                 return std::make_tuple(ptr, 1, 6);
@@ -115,7 +130,7 @@ ArbiterGEO::FindNextHopForGEO(uint64_t from, int32_t target_node_id){
     // 1: ill interface
 
     if(ptr == target_node_id){
-        // all leo on the road are detour
+        // all leo on the road are in jam area.
         // we can only detour to the last leo
         return std::make_tuple(last_ptr, 1, 6);
     }

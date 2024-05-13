@@ -141,9 +141,9 @@ namespace ns3 {
         double m_isl_data_rate_megabit_per_s;
         double m_gsl_data_rate_megabit_per_s;
         double m_ill_data_rate_megabit_per_s;
-        int64_t m_isl_max_queue_size_kB;
-        int64_t m_gsl_max_queue_size_kB;
-        int64_t m_ill_max_queue_size_kB;
+        int64_t m_isl_max_queue_size_pkt;
+        int64_t m_gsl_max_queue_size_pkt;
+        int64_t m_ill_max_queue_size_pkt;
         bool m_enable_isl_utilization_tracking;
         int64_t m_isl_utilization_tracking_interval_ns;
 

@@ -66,9 +66,10 @@ std::tuple<int32_t, int32_t, int32_t> ArbiterGS::TopologySatelliteNetworkDecide(
 
     // Note! we assume that groud station have 3 candidate
     for(size_t i = 0; i < m_next_hop_lists[target_node_id].size(); ++i){
-        int32_t target_index = std::get<0>(m_next_hop_lists[target_node_id][i]);
-        if(target_index == -1) break;   // the  num of LEO this GS can see is less than 3
-        if(!m_arbiter_helper->GetArbiterLEO(target_index)->CheckIfNeedDetour()){
+        int32_t next_node_index = std::get<0>(m_next_hop_lists[target_node_id][i]);
+        int32_t next_interface_index = std::get<2>(m_next_hop_lists[target_node_id][i]);
+        if(next_node_index == -1) break;   // the  num of LEO this GS can see is less than 3
+        if(!m_arbiter_helper->GetArbiterLEO(next_node_index)->CheckIfNeedDetour(next_interface_index)){
             // find a neighbor leo satellite which can be forward
             return m_next_hop_lists[target_node_id][i];
         }
