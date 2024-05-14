@@ -83,6 +83,10 @@ Ptr<ArbiterGEO> ArbiterLEOGSGEOHelper::GetArbiterGEO(size_t index){
     return m_arbiters_geo[index];
 }
 
+Ptr<BasicSimulation> ArbiterLEOGSGEOHelper::GetBasicSimulation(){
+    return m_basicSimulation;
+}
+
 std::vector<std::vector<std::vector<std::tuple<int32_t, int32_t, int32_t>>>> 
 ArbiterLEOGSGEOHelper::InitialEmptyForwardingState(){
     size_t num_leo_gs = m_topology->GetNumSatellites() + m_topology->GetNumGroundStations();

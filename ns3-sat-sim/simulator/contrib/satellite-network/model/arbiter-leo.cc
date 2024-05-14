@@ -303,6 +303,10 @@ void ArbiterLEO::UpdateDetour(){
         // NS_ABORT_MSG_IF(areas_size > 30, "The trafic jam list size is bigger than 30(too big)");
     }
 
+    // if simulate time less than trafic_jam_update_interval_ns, a jam area can not change to non-jam area,
+    // so we just return to speed up the program
+    if(m_arbiter_helper->GetBasicSimulation()->GetSimulationEndTimeNs() <= trafic_jam_update_interval_ns)
+        return;
 
     /**
      * Note!!! 
@@ -388,5 +392,83 @@ void ArbiterLEO::UpdateReceiveDatarate(){
         }
     }
 }
+
+/***
+
+#include <iostream>
+#include <cmath>
+
+// 定义点的结构体
+struct Point {
+    double x, y, z;
+    Point(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+};
+
+// 定义轨道参数结构体
+struct OrbitParams {
+    double semi_major_axis; // 半长轴
+    double inclination;     // 倾角
+    // 其他轨道参数...
+};
+
+// 计算两点之间的距离
+double distance(const Point& p1, const Point& p2) {
+    return std::sqrt((p1.x - p2.x) * (p1.x - p2.x) +
+                     (p1.y - p2.y) * (p1.y - p2.y) +
+                     (p1.z - p2.z) * (p1.z - p2.z));
+}
+
+// 计算轨道平面与球心的最短距离
+double min_distance_to_sphere(const OrbitParams& orbit_params, const Point& sphere_center) {
+    // 计算轨道平面的法向量
+    double inclination_rad = orbit_params.inclination * M_PI / 180.0;
+    double normal_x = 0.0;
+    double normal_y = std::cos(inclination_rad);
+    double normal_z = std::sin(inclination_rad);
+
+    // 计算距离球心最近的轨道平面上的一点
+    // 该点到球心的向量与轨道平面的法向量垂直
+    double t = (sphere_center.x * normal_x + sphere_center.y * normal_y + sphere_center.z * normal_z) /
+               (normal_x * normal_x + normal_y * normal_y + normal_z * normal_z);
+    double x = sphere_center.x - t * normal_x;
+    double y = sphere_center.y - t * normal_y;
+    double z = sphere_center.z - t * normal_z;
+
+    // 计算轨道平面上的一点与球心的距离
+    Point point_on_orbit_plane(x, y, z);
+    return distance(point_on_orbit_plane, sphere_center);
+}
+
+// 判断轨道是否与给定球相交
+bool is_orbit_intersect_sphere(const OrbitParams& orbit_params, const Point& sphere_center, double sphere_radius) {
+    // 计算轨道平面与球心的最短距离
+    double min_distance = min_distance_to_sphere(orbit_params, sphere_center);
+
+    // 判断最短距离是否小于等于球的半径
+    if (min_distance <= sphere_radius) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+int main() {
+    // 示例数据
+    OrbitParams orbit_params = {1000.0, 30.0}; // 假设半长轴为1000，倾角为30度
+    Point sphere_center(500.0, 500.0, 500.0); // 球心坐标
+    double sphere_radius = 200.0; // 球的半径
+
+    // 判断轨道是否与给定球相交
+    bool result = is_orbit_intersect_sphere(orbit_params, sphere_center, sphere_radius);
+    if (result) {
+        std::cout << "轨道与给定球相交，卫星可能进入球内。" << std::endl;
+    } else {
+        std::cout << "轨道与给定球不相交，卫星不会进入球内。" << std::endl;
+    }
+
+    return 0;
+}
+
+*/
 
 }
