@@ -15,15 +15,6 @@ if [ "$1" != "--travis" ]; then
 fi
 cd .. || exit 1
 
-# satgenpy
-echo "Nothing to build for satgenpy."
-
-# satviz
-echo "Nothing to build for satviz."
-
-# paper
-echo "Nothing to build for paper."
-
 # Confirmation build is finished
 echo ""
-echo "Hypatia modules have been built."
+echo "Hypatia ns3 modules have been built."

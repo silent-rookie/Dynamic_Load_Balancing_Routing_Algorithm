@@ -1,107 +1,93 @@
-# Hypatia
+# A Dynamic Load Balancing Routing Algorithm for GEO/LEO Hybrid Satellite Networks
+ 
+ This algorithm is a dynamic load balancing routing algorithm for GEO/LEO hybrid satellite networks. It is based on congestion prediction, and improve QoS(quality of service) by classifying network traffic. And this algorithm is implemented by [`Hypatia`](https://github.com/snkas/hypatia) framework.  
+ Keyworks: **:GEO/LEO hybrid network**, **congestion prediction**, **load balancing**, **traffic classification**, **traffic detour**
 
-Hypatia is a low earth orbit (LEO) satellite network simulation framework. It pre-calculates network state over time, enables packet-level simulations using ns-3 and provides visualizations to aid understanding.
+ <a href="#"><img alt="first0" src="readme_image/geo_leo_satellite_network_structure0.png" width="30%" /></a>
+ <a href="#"><img alt="algorithm utilization0" src="readme_image/algorithm_utilization0.png" width="30%" /></a>
+ <a href="#"><img alt="first1" src="readme_image/plot_packet_drop_rate.png" width="30%" /></a>
 
-<a href="#"><img alt="Kuiper side-view" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/Kuiper_side_view.png" width="20%" /></a>
-<a href="#"><img alt="Telesat top-view" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/Telesat_top_view.png" width="20%" /></a>
-<a href="#"><img alt="starlink_paris_luanda_short" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/starlink_paris_luanda_short.png" width="10%" /></a>
+Algorithm overview:  
+**Congestion prediction**: This algorithm declares the network congestion area as the congestion area, and the low-orbit satellite moving to the area can predict the congestion in advance.  
+**Traffic detour**: This algorithm divides network traffic into three categories according to the sensitivity to delay, and executes different detour strategies for different traffic when the network is congested.
 
-It consists of four main components:
-
-* `satgenpy` : Python framework to generate LEO satellite networks and generate 
-  routing over time over a period of time. It additionally includes several 
-  analysis tools to study individual cases. It makes use of several Python modules
-  among which: numpy, astropy, ephem, networkx, sgp4, geopy, matplotlib, 
-  statsmodels, cartopy (and its dependent (data) packages: libproj-dev, proj-data,
-  proj-bin, libgeos-dev), and exputil.
-  More information can be found in `satgenpy/README.md`.
-  (license: MIT)
-
-* `ns3-sat-sim` : ns-3 based framework which takes as input the state generated 
-  by `satgenpy` to perform packet-level simulations over LEO satellite networks.
-  It makes use of the [`satellite`](https://gitlab.inesctec.pt/pmms/ns3-satellite)
-  ns-3 module by Pedro Silva to calculate satellite locations over time.
-  It uses the [`basic-sim`](https://github.com/snkas/basic-sim/tree/3b32597c183e1039be7f0bede17d36d354696776) 
-  ns-3 module to make e.g., running end-to-end TCP flows easier, which makes use of several Python
-  modules (e.g., numpy, statsmodels, exputil) as well as several other packages (e.g., OpenMPI, lcov, gnuplot).
-  More information can be found in `ns3-sat-sim/README.md`.
-  (license: GNU GPL version 2)
-  
-* `satviz` : Cesium visualization pipeline to generate interactive satellite network
-  visualizations. It makes use of the online Cesium API by generating CesiumJS code.
-  The API calls require its user to obtain a Cesium access token (via [https://cesium.com/]()).
-  More information can be found in `satviz/README.md`.
-  (license: MIT)
-
-* `paper` : Experimental and plotting code to reproduce the experiments and 
-  figures which are presented in the paper.
-  It makes use of several Python modules among which: satgenpy, numpy, networkload, and exputil.
-  It uses the gnuplot package for most of its plotting.
-  More information can be found in `paper/README.md`.
-  (license: MIT)
-  
-(there is a fifth folder called `integration_tests` which is used for integration testing purposes)
-
-This is the code repository introduced and used in "Exploring the “Internet from space” with Hypatia" 
-by Simon Kassing*, Debopam Bhattacherjee*, André Baptista Águas, Jens Eirik Saethre and Ankit Singla
-(*equal contribution), which is published in the Internet Measurement Conference (IMC) 2020.
-
-BibTeX citation:
+**Details about this algorithm can be found [`here`](doc/algorithm_details.md).**  
+The paper proposing this algorithm is:
 ```
-@inproceedings {hypatia,
-    author = {Kassing, Simon and Bhattacherjee, Debopam and Águas, André Baptista and Saethre, Jens Eirik and Singla, Ankit},
-    title = {{Exploring the “Internet from space” with Hypatia}},
-    booktitle = {{ACM IMC}},
-    year = {2020}
+{
+    title:      Load Balancing and QoS Provisioning Based on Congestion Prediction for GEO/LEO Hybrid Satellite Networks
+    author:     Hiroki Nishiyama, Daigo Kudoh, Nei Kato and Naoto Kadowaki
+    booktitle:  IEEE
+    year:       2011
 }
 ```
+(In addition, **I am not the author of this algorithm**, I just implemented the algorithm in code and modified some details)
 
 ## Getting started
 
 1. System setup:
-   - Python version 3.7+
-   - Recent Linux operating system (e.g., Ubuntu 18+)
+   - Python version 3.8+
+   - Recent Linux operating system (e.g., Ubuntu 20+)
 
-2. Install dependencies:
+2. Install Hypatia dependencies:
    ```
    bash hypatia_install_dependencies.sh
    ```
    
-3. Build all four modules (as far as possible):
+3. Build ns3 modules:
    ```
    bash hypatia_build.sh
    ```
    
-4. Run tests:
+4. Generate GEO/LEO satellite network data:  
    ```
-   bash hypatia_run_tests.sh
+   bash generate_satellite_network_data.sh
    ```
+   (On machine with 4 cores and 4G memory, it takes about 1 hour)
 
-5. The reproduction of the paper is essentially the tutorial for Hypatia.
-   Please navigate to `paper/README.md`.
+5. Run ns3 to simulate:
+    ```
+    bash run_simulate.sh
+    ```
+    All simulation results and log are in `paper_routing/ns3_experiments/traffic_matrix/runs`  
+    Algorithm performance picture are in `paper_routing/ns3_experiments/traffic_matrix/figures`  
+    (On machine with 4 cores and 4G memory, it takes about 5~7 hour)
 
-### Visualizations
-Most of the visualizations in the paper are available [here](https://leosatsim.github.io/).
-All of the visualizations can be regenerated using scripts available in `satviz` as discussed above.
+6. (optional) Cesium Visualization:  
+    > Before generate Cesium visualization, you need:  
+    > 1. Obtain a Cesium access token at [https://cesium.com/]()   
+    > 2. Edit `paper_routing/ns3_experiments/traffic_matrix/satviz/static_html/top.html`, and insert your Cesium access token at line 10:
+    >    ```javascript
+    >    Cesium.Ion.defaultAccessToken = '<CESIUM_ACCESS_TOKEN>';
+    >    ```
+    After that:
+    ```
+    bash generate_cesium_visualization.sh
+    ```
+    It will generate `.html` file. You should open it with a **linux** browser(e.g., Firefox)
 
-Below are some examples of visualizations:
+7. Change Parameter  
+If you want to change the parameter of this algorithm, you can read the documents under `doc/`
 
-- SpaceX Starlink 5-shell side-view (left) and top-view (right). To know the configuration of the shells, click [here](https://leosatsim.github.io/).
 
-  <a href="#"><img alt="Starlink side-view" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/Starlink_side_view.png" width="45%" /></a>
-  <a href="#"><img alt="Starlink top-view" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/Starlink_top_view.png" width="45%" /></a>
+## Visualizations
+### Algorithm Performance
+- Packet Drop Rate  
+<a href="#"><img alt="Packet Drop Rate" src="readme_image/plot_packet_drop_rate.png" width="70%" /></a>
+- Throughput  
+<a href="#"><img alt="Throughput" src="readme_image/plot_throughput.png" width="70%" /></a>
+- End-to-end delay  
+<a href="#"><img alt="End-to-end delay" src="readme_image/plot_end-to-end_delay.png" width="70%" /></a>
 
-- Amazon Kuiper 3-shell side-view (left) and top-view (right). To know the configuration of the shells, click [here](https://leosatsim.github.io/kuiper.html).
+### Cesium Visualizations
+- GEO/LEO satellite network structure  
+<a href="#"><img alt="satellite networke0" src="readme_image/geo_leo_satellite_network_structure0.png" width="40%" /></a>
+<a href="#"><img alt="satellite networke1" src="readme_image/geo_leo_satellite_network_structure1.png" width="40%" /></a>
+ 
+- this algorithm isl utilization  
+<a href="#"><img alt="algorithm utilization0" src="readme_image/algorithm_utilization0.png" width="40%" /></a>
+<a href="#"><img alt="algorithm utilization1" src="readme_image/algorithm_utilization1.png" width="50%" /></a>
 
-  <a href="#"><img alt="Kuiper side-view" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/Kuiper_side_view.png" width="45%" /></a>
-  <a href="#"><img alt="Kuiper top-view" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/Kuiper_top_view.png" width="45%" /></a>
-
-- RTT changes over time between Paris and Luanda over Starlink 1st shell. Left: 117 ms, Right: 85 ms. Click on the images for 3D interactive visualizations.
-
-  <a href="https://leosatsim.github.io/starlink_550_path_Paris_1608_Luanda_1650_46800.html"><img alt="starlink_paris_luanda_long" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/starlink_paris_luanda_long.png" width="35%" /></a>
-  <a href="https://leosatsim.github.io/starlink_550_path_Paris_1608_Luanda_1650_139900.html"><img alt="starlink_paris_luanda_short" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/starlink_paris_luanda_short.png" width="35%" /></a>
-
-- Link utilizations change over time, even with the input traffic being static. For Kuiper 1st shell, path between Chicago and Zhengzhou at 10s (top) and 150s (bottom). Click on the images for 3D interactive visualizations.
-
-  <a href="https://leosatsim.github.io/kuiper_630_path_wise_util_Chicago_1193_Zhengzhou_1243_10000.html"><img alt="kuiper_Chicago_Zhengzhou_10s" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/kuiper_Chicago_Zhengzhou_10s.png" width="90%" /></a>
-  <a href="https://leosatsim.github.io/kuiper_630_path_wise_util_Chicago_1193_Zhengzhou_1243_150000.html"><img alt="kuiper_Chicago_Zhengzhou_150s" src="https://raw.githubusercontent.com/leosatsim/leosatsim.github.io/master/images/kuiper_Chicago_Zhengzhou_150s.png" width="90%" /></a>
+- Dijkstra shortest path(DSP) isl utilization  
+<a href="#"><img alt="DSP0" src="readme_image/DSP_utilization0.png" width="40%" /></a>
+<a href="#"><img alt="DSP1" src="readme_image/DSP_utilization1.png" width="50%" /></a>
