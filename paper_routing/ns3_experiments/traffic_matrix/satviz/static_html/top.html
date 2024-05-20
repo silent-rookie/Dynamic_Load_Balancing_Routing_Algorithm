@@ -1,0 +1,65 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+</head>
+<body>
+  <div id="cesiumContainer" style="width: 100%; height:100%"></div>
+  <script>
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMmZiMjYyZi0zM2Y4LTQ5MTgtYWVhOS04MTA2ODM2NWMwZjIiLCJpZCI6MjE1Njk1LCJpYXQiOjE3MTU4NjcwNDd9.bO7X6wYLPf3wACJBrzwjIiIbzelXaaEv_TwOnlJFqLM';
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+    skyBox : false,
+    skyAtmosphere: false,
+    baseLayerPicker: false,
+    geocoder: false,
+    homeButton: false,
+    infoBox: false,
+    sceneModePicker: false,
+    navigationHelpButton: false,
+    shouldAnimate : true,
+    contextOptions : {
+        webgl: {
+            alpha: true
+        }
+    }
+});
+
+var scene = viewer.scene;
+scene.backgroundColor = Cesium.Color.WHITE;
+scene.highDynamicRange = false;
+var canvas = viewer.canvas;
+canvas.setAttribute('tabindex', '0'); // needed to put focus on the canvas
+canvas.onclick = function() {
+    canvas.focus();
+};
+var ellipsoid = scene.globe.ellipsoid;
+var globe = viewer.scene.globe;
+globe.imageryLayers.removeAll();
+globe.baseColor = Cesium.Color.fromCssColorString('#f7fbff');
+
+var tonerLayer = globe.imageryLayers.addImageryProvider(
+    new Cesium.UrlTemplateImageryProvider({
+        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        credit: 'Map data © OpenStreetMap contributors, CC-BY-SA, Imagery © OpenTopoMap',
+        subdomains: ['a', 'b', 'c']
+    })
+);
+// var tonerLayer = globe.imageryLayers.addImageryProvider(
+//     new Cesium.UrlTemplateImageryProvider({
+//         url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+//         credit: 'Map data © OpenStreetMap contributors, CC-BY-SA, Imagery © CartoDB',
+//         subdomains: ['a', 'b', 'c', 'd']
+//     })
+// );
+// var tonerLayer = globe.imageryLayers.addImageryProvider(
+//     Cesium.createOpenStreetMapImageryProvider({
+//         url : 'https://stamen-tiles.a.ssl.fastly.net/toner/',
+//         credit : 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under CC BY SA.'
+//     })
+// );
+
+tonerLayer.alpha = 0.3;
+tonerLayer.brightness = 1;
+tonerLayer.contrast = 10;
+
