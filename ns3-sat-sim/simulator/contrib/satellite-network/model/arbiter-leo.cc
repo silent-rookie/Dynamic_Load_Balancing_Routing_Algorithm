@@ -148,16 +148,22 @@ void ArbiterLEO::SetLEONextGEOID(int32_t next_GEO_node_id){
 std::tuple<int32_t, int32_t, int32_t> 
 ArbiterLEO::ForwardToGEO(int32_t target_node_id, ns3::Ptr<const ns3::Packet> pkt)
 {
-    // make sure the GEO of next hop LEO is same to current LEO.
-    // if not, we can only forward in LEO layer.
-    int32_t next_node_id = std::get<0>(m_next_hop_lists[target_node_id][0]);
-    if(m_arbiter_helper->GetArbiterLEO(next_node_id)->GetLEONextGEOID() != m_next_GEO_node_id){
-        // forward to the second shortest LEO satellite
-        return m_next_hop_lists[target_node_id][1];
-    }
-
     // forward to GEO
     AddFromTag(pkt);
+
+    // make sure the GEO of next hop LEO is same to current LEO.
+    int32_t next_node_id = std::get<0>(m_next_hop_lists[target_node_id][0]);
+    if(m_arbiter_helper->GetArbiterLEO(next_node_id)->GetLEONextGEOID() != m_next_GEO_node_id){
+        // In this project, each of our GEO satellites covers 33% of the LEO satellites, 
+        // but actually GEO satellites can cover about 40% of the surface area, 
+        // so we assume that the LEO satellites at the coverage boundary of the 
+        // two GEO satellites can be covered by the two GEO satellites.
+
+        // So we forward to the GEO which connect to next_node
+        // BUT YOU NEED TO KNOW THAT:
+        // It is possible that current LEO satellite is not covered by the two GEO satellites, and we do not deal with that
+        return std::make_tuple(m_arbiter_helper->GetArbiterLEO(next_node_id)->GetLEONextGEOID(), 6, 1);
+    }
 
     // interface for device in satellite:
     // 0: loop-back interface

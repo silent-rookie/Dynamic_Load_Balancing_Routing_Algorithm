@@ -95,7 +95,7 @@ ArbiterGEO::FindNextHopForGEO(uint64_t from, int32_t target_node_id){
 
     int32_t last_ptr = ptr;
     // recursive search the node which not in trafic jam area
-    while(ptr != target_node_id && !m_arbiter_helper->GetArbiterLEO(ptr)->CheckIfInTraficJamArea()){
+    while(ptr != target_node_id && m_arbiter_helper->GetArbiterLEO(ptr)->CheckIfInTraficJamArea()){
         // make sure the next node is in ill distance
         int32_t next_GEO_id = m_arbiter_helper->GetArbiterLEO(ptr)->GetLEONextGEOID();
         if(next_GEO_id != m_node_id){
