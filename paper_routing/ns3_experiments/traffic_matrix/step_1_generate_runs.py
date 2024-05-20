@@ -14,6 +14,11 @@ local_shell = exputil.LocalShell()
 # local_shell.remove_force_recursive("pdf")
 # local_shell.remove_force_recursive("data")
 
+# all runs use same udp pairs Schedule
+random.seed(123456789)
+seed_from_to = random.randint(0, 100000000) # Legacy reasons
+pairs = generate_from_to_random_pair_top100_city(pairs_num, random_num, seed_from_to)
+
 for run in get_run_list():
 
     # Prepare run directory
@@ -45,10 +50,10 @@ for run in get_run_list():
     # .gitignore (legacy reasons)
     local_shell.write_file(run_dir + "/.gitignore", "logs_ns3")
 
-    # Schedule
-    random.seed(123456789)
-    seed_from_to = random.randint(0, 100000000) # Legacy reasons
-    pairs = generate_from_to_random_pair_top100_city(pairs_num, random_num, seed_from_to)
+    # # Schedule
+    # random.seed(123456789)
+    # seed_from_to = random.randint(0, 100000000) # Legacy reasons
+    # pairs = generate_from_to_random_pair_top100_city(pairs_num, random_num, seed_from_to)
 
     # local_shell.sed_replace_in_file_plain(config, "[UDP_LOGGING_BURST_IDS]", generate_pairs_logging_ids(pairs))
     local_shell.sed_replace_in_file_plain(config, "[UDP_LOGGING_BURST_IDS]", "set()")
