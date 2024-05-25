@@ -7,6 +7,7 @@ echo ""
 
 # General
 sudo apt-get update || exit 1
+sudo apt install python3-pip || exit 1
 
 # satgenpy
 echo "Installing dependencies for satgenpy..."
@@ -34,7 +35,7 @@ echo "Installing dependencies for paper..."
 pip install numpy || exit 1
 pip install git+https://github.com/snkas/exputilpy.git@v1.6 || exit 1
 pip install git+https://github.com/snkas/networkload.git@v1.3 || exit 1
-sudo apt-get install gnuplot
+sudo apt-get install gnuplot screen || exit 1
 
 # Confirmation dependencies are installed
 echo ""
