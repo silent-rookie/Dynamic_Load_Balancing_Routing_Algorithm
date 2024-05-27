@@ -35,7 +35,7 @@ def build(bld):
         'model/apps/udp-burst-info.cc',
         'model/apps/id-seq-header.cc',
         'model/apps/id-seq-ts-header.cc',
-        'model/apps/id-seq-ts-tos-header.cc',
+        'model/apps/traffic-classify-tos.cc',
         'model/apps/from-tag.cc',
         'model/apps/flow-tos-tag.cc',
 
@@ -83,7 +83,7 @@ def build(bld):
         'model/apps/udp-burst-info.h',
         'model/apps/id-seq-header.h',
         'model/apps/id-seq-ts-header.h',
-        'model/apps/id-seq-ts-tos-header.h',
+        'model/apps/traffic-classify-tos.h',
         'model/apps/from-tag.h',
         'model/apps/flow-tos-tag.h',
 

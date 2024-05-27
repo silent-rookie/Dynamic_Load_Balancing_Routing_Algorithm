@@ -32,7 +32,8 @@
 #include "ns3/exp-util.h"
 #include "ns3/random-variable-stream.h"
 #include "ns3/basic-simulation.h"
-#include "ns3/id-seq-ts-tos-header.h"
+#include "ns3/id-seq-ts-header.h"
+#include "ns3/traffic-classify-tos.h"
 #include "ns3/flow-tos-tag.h"
 
 namespace ns3 {
