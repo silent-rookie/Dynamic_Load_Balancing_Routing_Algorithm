@@ -31,6 +31,12 @@ fi
 if [ "${id}" = "2" ]; then
   python3 main_starlink_GEO.py 200 1000 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls_ills ${num_threads}
 fi
+if [ "${id}" = "3" ]; then
+  python3 main_starlink_GEO.py 5736 1000 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls_ills ${num_threads}
+fi
+if [ "${id}" = "4" ]; then
+  python3 main_starlink_GEO.py 5736 100 isls_plus_grid ground_stations_top_100 algorithm_free_one_only_over_isls_ills ${num_threads}
+fi
 
 # # Kuiper-630 with ISLs
 # if [ "${id}" = "3" ]; then

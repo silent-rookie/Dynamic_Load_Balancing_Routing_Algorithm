@@ -64,10 +64,10 @@ The paper proposing this algorithm is:
     ```
     bash generate_cesium_visualization.sh
     ```
-    It will generate `.html` file. You should open it with a **linux** browser(e.g., Firefox)
+    It will generate `.html` file in `paper_routing/ns3_experiments/traffic_matrix/figures`. You should open it with a **linux** browser(e.g. Firefox)
 
 7. Change Parameter  
-If you want to change the parameter of this algorithm, you can read the documents under `doc/`
+If you want to change the parameter of this algorithm, you can read [`here`](doc/change_parameter.md)
 
 
 ## Visualizations
