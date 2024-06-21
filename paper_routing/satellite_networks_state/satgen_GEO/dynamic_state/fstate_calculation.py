@@ -143,14 +143,14 @@ def calculate_fstate_shortest_path_without_gs_relaying(
                     prev_next_node = [next_hop_lists[0][0], next_hop_lists[1][0], next_hop_lists[2][0]]
 
                     # Update forwarding state
-                    if not prev_fstate or prev_fstate[(curr, dst_gs_node_id)] != prev_next_node:
+                    if not prev_fstate or prev_fstate[(src_gs_node_id, dst_gs_node_id)] != prev_next_node:
                         f_out.write("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n" % (
                             src_gs_node_id, dst_gs_node_id,
                             next_hop_lists[0][0], next_hop_lists[0][1], next_hop_lists[0][2],
                             next_hop_lists[1][0], next_hop_lists[1][1], next_hop_lists[1][2],
                             next_hop_lists[2][0], next_hop_lists[2][1], next_hop_lists[2][2]
                         ))
-                    fstate[(curr, dst_gs_node_id)] = prev_next_node
+                    fstate[(src_gs_node_id, dst_gs_node_id)] = prev_next_node
 
     # Finally return result
     return fstate
